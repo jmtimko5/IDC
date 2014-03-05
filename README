@@ -1,23 +1,24 @@
-Spring 2014 IDC
-=======
-
-
-----------
-
-
-How to git
-
-###Get the repository###
-<pre>git clone https://github.com/saicheems/IDC.git</pre>
-
-###Get the up to date repository###
-<pre>git pull origin master</pre>
-
-###Add a new file/folder to be committed
-<pre>git add FILENAME</pre>
-
-###Commit###
-<pre>git commit -m 'ADD YOUR MESSAGE'</pre>
-
-###Push to github###
-<pre>git push origin master</pre>
+###Spring 2014 IDC
+------
+##How to git
+---
+#Get the repository
+```
+git clone https://github.com/saicheems/IDC.git
+```
+#Get the up to date repository
+```
+git pull origin master
+```
+#Add a new file/folder to be committed
+```
+git add FILENAME
+```
+#Commit
+```
+git commit -m 'ADD YOUR MESSAGE'
+```
+#Push to github
+```
+git push origin master
+```
