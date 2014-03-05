@@ -1,5 +1,4 @@
 #Spring 2014 IDC
-------
 ###Get the repository
 ```
 git clone https://github.com/saicheems/IDC.git
@@ -14,7 +13,7 @@ git add FILENAME
 ```
 ###Commit
 ```
-git commit -m 'ADD YOUR MESSAGE'
+git commit -a -m 'ADD YOUR MESSAGE'
 ```
 ###Push to github
 ```
