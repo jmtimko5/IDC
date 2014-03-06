@@ -33,7 +33,9 @@ void loop() {
  {
     char receiving = Xbee.read();
     digitalWrite(9, HIGH);
-    delay(100);
+    Serial.println("Receiving");
+    Serial.println(receiving);
+    delay(10);
     digitalWrite(9, LOW);
  }
 } 
