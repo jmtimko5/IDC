@@ -2,6 +2,7 @@
  * PIN SETUP
  * P13: DOUT
  * P12: DIN
+ * P9: LED Indicator
  */
 
 #include <SoftwareSerial.h> 
@@ -10,7 +11,8 @@
 #define Tx 12 // DIN to pin 12
 SoftwareSerial Xbee (Rx, Tx); 
  
-void setup() { 
+void setup() {
+ pinmode(9, OUTPUT);
  Serial.begin(9600); // Set to No line ending; 
  Xbee.begin(9600); // type a char, then hit enter 
  delay(500); 
