@@ -12,7 +12,7 @@
 SoftwareSerial Xbee (Rx, Tx); 
  
 void setup() {
- pinmode(9, OUTPUT);
+ pinMode(9, OUTPUT);
  Serial.begin(9600); // Set to No line ending; 
  Xbee.begin(9600); // type a char, then hit enter 
  delay(500); 
