@@ -1,15 +1,15 @@
 /*
  * PIN SETUP
- * P13: DOUT
- * P12: DIN
+ * P11: DOUT
+ * P10: DIN
  * P9: LED Indicator
  * P7: Button Input
  */
 
 #include <SoftwareSerial.h> 
  
-#define Rx 13 // DOUT to pin 13 
-#define Tx 12 // DIN to pin 12
+#define Rx 11 // DOUT to pin 11 
+#define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx); 
  
 void setup() {
