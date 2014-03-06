@@ -3,6 +3,7 @@
  * P13: DOUT
  * P12: DIN
  * P9: LED Indicator
+ * P7: Button Input
  */
 
 #include <SoftwareSerial.h> 
@@ -13,22 +14,25 @@ SoftwareSerial Xbee (Rx, Tx);
  
 void setup() {
  pinMode(9, OUTPUT);
+ pinMode(7, INPUT);
  Serial.begin(9600); // Set to No line ending; 
  Xbee.begin(9600); // type a char, then hit enter 
  delay(500); 
 } 
  
-void loop() { 
- if(Serial.available()) { // Is serial data available? 
- char outgoing = Serial.read(); // Read character, send to XBee 
- Xbee.print(outgoing); 
- } 
+void loop() {
+
+ if(digitalRead(7) == HIGH)
+ {
+    Xbee.print('A');
+ }
  
- if(Xbee.available()) { // Is data available from XBee? 
- char incoming = Xbee.read(); // Read character, 
- Serial.println(incoming); // send to Serial Monitor 
- } 
- 
- delay(50); 
+ if(Xbee.available())
+ {
+    char receiving = Xbee.read();
+    digitalWrite(9, HIGH);
+    delay(100);
+    digitalWrite(9, LOW);
+ }
 } 
 
