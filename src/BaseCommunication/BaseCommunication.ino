@@ -6,7 +6,6 @@
  * P7: Button Input
  */
 
-//ankit was here
 
 #include <SoftwareSerial.h> 
  
