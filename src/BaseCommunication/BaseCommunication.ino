@@ -26,6 +26,7 @@ void loop() {
  if(digitalRead(7) == HIGH)
  {
     Xbee.print('A');
+    Serial.print('sending');
  }
  
  if(Xbee.available())
@@ -36,6 +37,7 @@ void loop() {
     Serial.println(receiving);
     delay(10);
     digitalWrite(9, LOW);
+    Serial.print('recieving');
  }
 } 
 
