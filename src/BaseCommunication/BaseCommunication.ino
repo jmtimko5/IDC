@@ -12,6 +12,8 @@
 #define Rx 11 // DOUT to pin 11 
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx); 
+//Change this to your squadron
+String squadron = "Red";
  
 void setup() {
  pinMode(9, OUTPUT);
@@ -25,19 +27,34 @@ void loop() {
 
  if(digitalRead(7) == HIGH)
  {
-    Xbee.print('A');
-    Serial.print('sending');
+    //Compose Message
+    String message = squadron + " Squadron Reporting In";
+    
+    //Send Message
+    Xbee.print(message);
+    
+    //Send Message over Serial
+    Serial.print("Sending: \"");
+    Serial.print(message);
+    Serial.println("\"");
  }
  
  if(Xbee.available())
  {
+    //Read Message
     char receiving = Xbee.read();
+    
+    //Indicate Message Recieved using LED
     digitalWrite(9, HIGH);
-    Serial.println("Receiving");
-    Serial.println(receiving);
+    
+    //Indicate Message Recieved over Serial
+    Serial.print("Receiving: \"");
+    Serial.print(receiving);
+    Serial.println("\"");
+    
+    //Blink LED off
     delay(10);
     digitalWrite(9, LOW);
-    Serial.print('recieving');
  }
 } 
 
