@@ -59,12 +59,4 @@ long RCtime(int sensPin){
 
 void loop() {
   Serial.println(RCtime(IRR));
-  Forward();
-  delay(1000);
-  Back();
-  delay(1000);
-  Left();
-  delay(1000);
-  Right();
-  delay(1000);
 }
