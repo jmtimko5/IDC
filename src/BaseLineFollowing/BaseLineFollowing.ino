@@ -15,6 +15,7 @@ Servo rightServo;
 
 void setup() 
 {
+  Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
