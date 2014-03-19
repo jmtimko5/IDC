@@ -13,7 +13,7 @@
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx); 
 //Change this to your squadron
-String squadron = "Red";
+String squadron = "R";
  
 void setup() {
  pinMode(9, OUTPUT);
@@ -28,7 +28,7 @@ void loop() {
  if(digitalRead(7) == HIGH)
  {
     //Compose Message
-    String message = squadron + " Squadron Reporting In";
+    String message = squadron;
     
     //Send Message
     Xbee.print(message);
