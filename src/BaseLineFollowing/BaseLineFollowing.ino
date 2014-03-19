@@ -12,6 +12,7 @@ From the POV of the Bot
 
 Servo leftServo; //define servos
 Servo rightServo;
+int calibDiff = 50;
 
 void setup() 
 {
@@ -22,9 +23,23 @@ void setup()
   rightServo.write(90);
 }
 
+void Move(int left, int right) {
+ if (left == 1) {
+ leftServo.writeMicroseconds(1700);
+ } else if (left == 0) {
+   leftServo.writeMicroseconds(1500);
+ }
+ if (right == 1) {
+ rightServo.writeMicroseconds(1700);
+ } else if (right == 0) {
+   rightServo.writeMicroseconds(1500);
+ }
+  
+}
+
 void Forward(){
-rightServo.write(0); //right full forward
-leftServo.write(180); //left full forward
+rightServo.writeMicroseconds(1340); //right full forward
+leftServo.writeMicroseconds(1700); //left full forward
 } 
 
 void Back(){
@@ -40,6 +55,11 @@ leftServo.write(180);
 void Right(){
 rightServo.write(0);
 leftServo.write(90);
+}
+
+void Stop(){
+rightServo.write(90); //right stop
+leftServo.write(90); //left stop
 }
   
 long RCtime(int sensPin){
@@ -59,4 +79,32 @@ long RCtime(int sensPin){
 
 void loop() {
   Serial.println(RCtime(IRR));
+  int irl = RCtime(IRL);
+  int irlc = RCtime(IRLC);
+  int irrc = RCtime(IRRC);
+  int irr = RCtime(IRR);
+  
+  if(((irlc>calibDiff)&&(irrc>calibDiff))&&((irr<calibDiff)&&(irl<calibDiff))) //go forward
+  {
+    Move(1,1);
+  }
+  else if(((irlc>calibDiff)&&(irrc>calibDiff)&&(irr>calibDiff)&&(irl>calibDiff))) //stop
+  {
+    Move(0,0);
+  }
+  else if((irl>calibDiff)&&(irr<calibDiff)) //right
+  {
+    Move(1,0);
+  }
+  else if((irl<calibDiff)&&(irr>calibDiff)) //left
+  {
+    Move(0,1);
+  }
+  else if(((irlc>calibDiff)&&(irrc>calibDiff))&&((irr>calibDiff)&&(irl>calibDiff))) //momentary stop at hash
+  {
+    Move(0,0);
+    delay(1000);
+    Move(1,1);
+    delay(1000);
+}
 }
