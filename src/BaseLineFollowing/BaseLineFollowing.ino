@@ -30,7 +30,7 @@ void Move(int left, int right) {
    leftServo.writeMicroseconds(1500);
  }
  if (right == 1) {
- rightServo.writeMicroseconds(1700);
+ rightServo.writeMicroseconds(1350);
  } else if (right == 0) {
    rightServo.writeMicroseconds(1500);
  }
@@ -79,32 +79,22 @@ long RCtime(int sensPin){
 
 void loop() {
   Serial.println(RCtime(IRR));
-  int irl = RCtime(IRL);
-  int irlc = RCtime(IRLC);
-  int irrc = RCtime(IRRC);
-  int irr = RCtime(IRR);
+  int irl = RCtime(IRL) > calibDiff;
+  int irlc = RCtime(IRLC) > calibDiff;
+  int irrc = RCtime(IRRC) > calibDiff;
+  int irr = RCtime(IRR) > calibDiff;
   
-  if(((irlc>calibDiff)&&(irrc>calibDiff))&&((irr<calibDiff)&&(irl<calibDiff))) //go forward
-  {
+  if (irl && irlc && irrc && irr) {
+    // All Black
     Move(1,1);
-  }
-  else if(((irlc>calibDiff)&&(irrc>calibDiff)&&(irr>calibDiff)&&(irl>calibDiff))) //stop
-  {
-    Move(0,0);
-  }
-  else if((irl>calibDiff)&&(irr<calibDiff)) //right
-  {
+  } else if (irlc && irrc) {
+    // Insides Black
+    Move(1,1);
+  } else if (!irr && !irrc) {
+    // Two Right Sides white
+    Move(0,1);
+  } else if (!irl && !irlc) {
+    // Two Left Sides white
     Move(1,0);
   }
-  else if((irl<calibDiff)&&(irr>calibDiff)) //left
-  {
-    Move(0,1);
-  }
-  else if(((irlc>calibDiff)&&(irrc>calibDiff))&&((irr>calibDiff)&&(irl>calibDiff))) //momentary stop at hash
-  {
-    Move(0,0);
-    delay(1000);
-    Move(1,1);
-    delay(1000);
-}
 }
