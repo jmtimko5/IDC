@@ -33,33 +33,6 @@ void Move(int left, int right) {
  rightServo.writeMicroseconds(1350);
  } else if (right == 0) {
    rightServo.writeMicroseconds(1500);
- }
-  
-}
-
-void Forward(){
-rightServo.writeMicroseconds(1340); //right full forward
-leftServo.writeMicroseconds(1700); //left full forward
-} 
-
-void Back(){
-rightServo.write(180); //right full backwards
-leftServo.write(0); //left full backwards
-}
-
-void Left(){
-rightServo.write(90);
-leftServo.write(180);
-}
-
-void Right(){
-rightServo.write(0);
-leftServo.write(90);
-}
-
-void Stop(){
-rightServo.write(90); //right stop
-leftServo.write(90); //left stop
 }
   
 long RCtime(int sensPin){
