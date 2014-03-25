@@ -33,8 +33,8 @@ void Move(int left, int right) {
  rightServo.writeMicroseconds(1350);
  } else if (right == 0) {
    rightServo.writeMicroseconds(1500);
-}
-  
+  }
+}  
 long RCtime(int sensPin){
    long result = 0;
    pinMode(sensPin, OUTPUT);       // make pin OUTPUT
