@@ -10,12 +10,12 @@ From the POV of the Bot
 #define IRL 7
 #include <Servo.h>
 #define onesens 8
-#define twosens 9
+//#define twosens 9
 
 Servo leftServo; //define servos
 Servo rightServo;
 int calibDiff = 50;
-int calibsen = 3500;
+int calibsen = 600;
 int counter = 0;
 boolean start = false;
 
@@ -56,7 +56,9 @@ long RCtime(int sensPin){
 } 
 
 void loop() {
-  //Serial.println(RCtime(IRR));
+  //Serial.println(RCtime(onesens));
+  //Serial.println("\n");
+  //Serial.println(RCtime(twosens));
   int irl = RCtime(IRL) > calibDiff;
   int irlc = RCtime(IRLC) > calibDiff;
   int irrc = RCtime(IRRC) > calibDiff;
@@ -77,15 +79,20 @@ void loop() {
   }
   
   int d1 = RCtime(onesens) > calibsen;
-  int d2 = RCtime(twosens) > calibsen;
-  if (!d1 && !d2 && !start){
+  //int d2 = RCtime(twosens) > calibsen;
+  if (!d1 && !start){
     start = true; 
   }
-  if (d1 && d2 && start){ 
+  if (d1 && start){ 
     counter++; 
   }
-  if (!d1 && !d2 && start){ 
+  if (!d1 && start){ 
     start = false; 
-    Serial.println(counter);
+   // Serial.println("counter");
+   // Serial.println(counter);
+//    //Serial.println("\n d1");
+//    //
   } 
+  Serial.println(d1);
+//    //Serial.println("counter");
 }
