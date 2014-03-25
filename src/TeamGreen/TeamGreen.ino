@@ -9,23 +9,23 @@ From the POV of the Bot
 #define IRLC 6
 #define IRL 7
 #include <Servo.h>
-#define s1 8
-#define s2 9
+#define onesens 8
+#define twosens 9
+
 Servo leftServo; //define servos
 Servo rightServo;
 int calibDiff = 50;
-//int calibsen = 3500; 
-//int counter = 0; 
-//boolean start = false; 
+int calibsen = 3500;
+int counter = 0;
+boolean start = false;
 
-void setup()
+void setup() 
 {
   Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
   rightServo.write(90);
- 
 }
 
 void Move(int left, int right) {
@@ -39,21 +39,21 @@ void Move(int left, int right) {
  } else if (right == 0) {
    rightServo.writeMicroseconds(1500);
 }
-} 
+}  
 long RCtime(int sensPin){
    long result = 0;
-   pinMode(sensPin, OUTPUT); // make pin OUTPUT
-   digitalWrite(sensPin, HIGH); // make pin HIGH to discharge capacitor - study the schematic
-   delay(1); // wait a ms to make sure cap is discharged
+   pinMode(sensPin, OUTPUT);       // make pin OUTPUT
+   digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
+   delay(1);                       // wait a  ms to make sure cap is discharged
 
-   pinMode(sensPin, INPUT); // turn pin into an input and time till pin goes low
-   digitalWrite(sensPin, LOW); // turn pullups off - or it won't work
-   while(digitalRead(sensPin)){ // wait for pin to go low
+   pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
+   digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
+   while(digitalRead(sensPin)){    // wait for pin to go low
       result++;
    }
 
-   return result; // report results
-}
+   return result;                   // report results   
+} 
 
 void loop() {
   //Serial.println(RCtime(IRR));
@@ -75,17 +75,17 @@ void loop() {
     // Two Left Sides white
     Move(1,0);
   }
-//  
-//  int d1 = RCtime(s1) > calibsen;
-//  int d2 = RCtime(s2) > calibsen; 
-//  if (!d1 && !d2 && !start){
-//    start = true; 
-//  }
-//  if (d1 && d2 && start){ 
-//    counter++; 
-//  }
-//  if (!d1 && !d2 && start){ 
-//    start = false; 
-//    Serial.println(counter);
-//  } 
+  
+  int d1 = RCtime(onesens) > calibsen;
+  int d2 = RCtime(twosens) > calibsen;
+  if (!d1 && !d2 && !start){
+    start = true; 
+  }
+  if (d1 && d2 && start){ 
+    counter++; 
+  }
+  if (!d1 && !d2 && start){ 
+    start = false; 
+    Serial.println(counter);
+  } 
 }
