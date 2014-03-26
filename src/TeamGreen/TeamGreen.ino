@@ -15,10 +15,10 @@ From the POV of the Bot
 Servo leftServo; //define servos
 Servo rightServo;
 int calibDiff = 50;
-int calibsen = 600;
+int calibsen = 400;
 int counter = 0;
 int contact = 2; 
-int accu = 25;
+int accu = 15;
 int c0 = 30; 
 int c1 = 100; 
 int c2 = 200; 
@@ -37,12 +37,12 @@ void setup()
 
 void Move(int left, int right) {
  if (left == 1) {
- leftServo.writeMicroseconds(1700);
+ leftServo.writeMicroseconds(1600);
  } else if (left == 0) {
    leftServo.writeMicroseconds(1500);
  }
  if (right == 1) {
- rightServo.writeMicroseconds(1350);
+ rightServo.writeMicroseconds(1425);
  } else if (right == 0) {
    rightServo.writeMicroseconds(1500);
 }
@@ -112,19 +112,20 @@ void loop() {
       accu=15; 
     } 
   }
-  if (d1 && contact==1){ 
+  if (d1 && contact==1 && counter>=0){ 
     counter++; 
+    Serial.println(counter); 
   }
-  if (!d1 && contact==1 && counter>35){ 
+  if (!d1 && contact==1 && counter>15){ 
     accu--;
     if (accu==0){
       contact--;
-      report = check(counter); 
-      Serial.println(report);
-      
+      //report = check(counter); 
+      //Serial.println(report);
+      //Serial.println(counter);
     }  
     
   } 
-  
+   
 //    //Serial.println("counter");
 }
