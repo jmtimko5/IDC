@@ -17,8 +17,15 @@ Servo rightServo;
 int calibDiff = 50;
 int calibsen = 600;
 int counter = 0;
-boolean start = false;
-
+int contact = 2; 
+int accu = 25;
+int c0 = 30; 
+int c1 = 100; 
+int c2 = 200; 
+int c3 = 300; 
+int c4 = 400; 
+int c5 = 500;
+int report = 0; 
 void setup() 
 {
   Serial.begin(9600);
@@ -54,7 +61,25 @@ long RCtime(int sensPin){
 
    return result;                   // report results   
 } 
-
+int check(int dis){
+ int peg = 0;
+ if (dis >=c0 && dis <=c1){
+   peg = 1;
+ }
+  if (dis >=c1 && dis <=c2){
+   peg = 2;
+ }
+  if (dis >=c2 && dis <=c3){
+   peg = 3;
+ }
+  if (dis >=c3 && dis <=c4){
+   peg = 4;
+ }
+  if (dis >=c4 && dis <=c5){
+   peg = 5;
+ }
+return peg; 
+}
 void loop() {
   //Serial.println(RCtime(onesens));
   //Serial.println("\n");
@@ -80,19 +105,26 @@ void loop() {
   
   int d1 = RCtime(onesens) > calibsen;
   //int d2 = RCtime(twosens) > calibsen;
-  if (!d1 && !start){
-    start = true; 
+  if (!d1 && contact==2){
+    accu--;
+    if (accu==0){
+      contact--;
+      accu=15; 
+    } 
   }
-  if (d1 && start){ 
+  if (d1 && contact==1){ 
     counter++; 
   }
-  if (!d1 && start){ 
-    start = false; 
-   // Serial.println("counter");
-   // Serial.println(counter);
-//    //Serial.println("\n d1");
-//    //
+  if (!d1 && contact==1 && counter>35){ 
+    accu--;
+    if (accu==0){
+      contact--;
+      report = check(counter); 
+      Serial.println(report);
+      
+    }  
+    
   } 
-  Serial.println(d1);
+  
 //    //Serial.println("counter");
 }
