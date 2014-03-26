@@ -57,17 +57,28 @@ void loop() {
   int irrc = RCtime(IRRC) > calibDiff;
   int irr = RCtime(IRR) > calibDiff;
   
+  
   if (irl && irlc && irrc && irr) {
     // All Black
     Move(1,1);
-  } else if (irlc && irrc) {
+  } 
+    else if (!irl && !irlc && !irrc && !irr) {
+    //All White
+    Move(1,1);
+  }
+    else if (!irl && irlc && irrc && !irr) {
     // Insides Black
     Move(1,1);
-  } else if (!irr && !irrc) {
+  } 
+    else if (!irrc && !irr) {
     // Two Right Sides white
     Move(0,1);
-  } else if (!irl && !irlc) {
+  } 
+   else if (!irl && !irlc) {
     // Two Left Sides white
     Move(1,0);
+  } 
+   
+   
   }
-}
+ 
