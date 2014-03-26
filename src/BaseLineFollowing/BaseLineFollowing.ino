@@ -23,18 +23,17 @@ void setup()
   rightServo.write(90);
 }
 
-void Move(int left, int right) {
- if (left == 1) {
- leftServo.writeMicroseconds(1700);
- } else if (left == 0) {
-   leftServo.writeMicroseconds(1500);
- }
- if (right == 1) {
- rightServo.writeMicroseconds(1350);
- } else if (right == 0) {
-   rightServo.writeMicroseconds(1500);
-  }
-}  
+void Move(float left, float right) {
+ float leftSpeed = mapfloat(left,0,1,1500,1700);
+ float rightSpeed = mapfloat(right,0,1,1500,1350);
+ Serial.println(leftSpeed);
+ 
+ leftServo.writeMicroseconds((int) leftSpeed);
+ rightServo.writeMicroseconds((int) rightSpeed);
+}
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 long RCtime(int sensPin){
    long result = 0;
    pinMode(sensPin, OUTPUT);       // make pin OUTPUT
