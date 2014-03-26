@@ -68,6 +68,7 @@ long colourMeasure()
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
+    delay(10);
   }
   long average=sum/50;
   //here we would put some sort of if tree to determine an integer value depending on colour
