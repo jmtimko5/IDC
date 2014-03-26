@@ -1,5 +1,5 @@
 /*Four Sensors Digital Inputs should be 4-7, 
-Right to Left From the POV of the Bot
+Right to Left From the POV of the Bot stop at positionnum+4
 */
 const int TxPin = 8;
 #include <Servo.h>
@@ -115,6 +115,12 @@ void loop()
   if(!irl || !irlc || !irrc || !irr)
   {
     allBlackHit = false;
+  }
+  
+  if(counter > (positionNum + 3))
+  {
+    Move(0,0);
+    delay(10000000);
   }
   
   if (!allBlackHit && irl && irlc && irrc && irr) // All Black - hash mark
