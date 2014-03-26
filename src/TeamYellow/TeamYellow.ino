@@ -47,6 +47,10 @@ void Move(int left, int right)
    rightServo.writeMicroseconds(1500);
  }
 }
+float volts(int adPin)
+{
+  return float(analogRead(adPin)) * 5.0/1024;
+}
 
 long RCtime(int sensPin){
    long result = 0;
@@ -65,7 +69,10 @@ long RCtime(int sensPin){
 
 void loop() 
 {
-  Serial.println(RCtime(IRR));
+  //Serial.println(RCtime(IRR));
+  Serial.print("Phototransistor Voltage = ");
+  Serial.print(volts(A0));
+  Serial.println("volts");
   int irl = RCtime(IRL) > calibDiff;
   int irlc = RCtime(IRLC) > calibDiff;
   int irrc = RCtime(IRRC) > calibDiff;
@@ -75,7 +82,11 @@ void loop()
   {
     Move(1,1);
     //eventually add  pause for first three and read light state here
-  } 
+  }
+  else if(!irlc && !irrc && !irl & !irr){
+    // All White
+    Move(1, 1);
+  }
   else if (irlc && irrc) // Insides Black 
   { 
     Move(1,1);
