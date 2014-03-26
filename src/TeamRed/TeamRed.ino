@@ -5,7 +5,8 @@ From the POV of the Bot
 //pin 9 broken
 
 //TODO:
-//-averaging values, fixing corner, qti protection, lcd state indication, 
+//-averaging values, fixing corner, qti protection, lcd state indication
+//communication and when to go
 */
 
 #define IRR 4
@@ -109,7 +110,7 @@ void loop() {
      delay(2000);
      check2 = false;
    
-   } else if (lineCount == 6 + val) {
+   } else if (lineCount == 6 + (6 - val)) {
      //stop! final area!
      Move(0,0);
      //done...
