@@ -17,6 +17,7 @@ Servo rightServo; //define servos
 int calibDiff=50;
 boolean flag=false;
 int CODE=0;
+int test=5;
 
 void setup() 
 {
@@ -89,13 +90,21 @@ void loop()
      Move(0,0);
      tone(Speak, 440, 500);             //Tone so we know it works
      delay(500);               
-    /* if (hashCount<3) {                 //if still in colour measuring part 
-     CODE=CODE+colourMeasure();         //add measured value to CODE
+     if (hashCount<4) {                 //if still in colour measuring part 
+     //CODE=CODE+colourMeasure();         //add measured value to CODE
      hashCount++;
      }
-     else {
-     // do communication stuff
-     } */
+     else
+     {
+       if (hashCount>0) {
+       hashCount--;
+       }
+       else{
+       while(0==0)
+       {
+       }
+       }
+     }
      Move(1,1);
      delay(500); //so that it doesn't start measuring again when it's still on the black
   }

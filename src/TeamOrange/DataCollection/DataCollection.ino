@@ -28,15 +28,16 @@ void loop()
 {
   long sum=0;
   digitalWrite(RedLED, HIGH);
-  delay(500);
+  delay(1000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
   }
   Serial.print("Red value:");
   Serial.print(RCtime(PT)/50);
+  Serial.println();
   digitalWrite(RedLED, LOW);
-  delay(500);
+  delay(1000);
   
   digitalWrite(YelLED, HIGH);
   delay(500);
@@ -47,11 +48,12 @@ void loop()
   }
   Serial.print("Yellow value:");
   Serial.print(RCtime(PT)/50);
+  Serial.println();
   digitalWrite(YelLED, LOW);
-  delay(500);
+  delay(1000);
   
   digitalWrite(GreenLED, HIGH);
-  delay(500);
+  delay(1000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
@@ -59,6 +61,7 @@ void loop()
   }
   Serial.print("Green value:");
   Serial.print(RCtime(PT)/50);
+  Serial.println();
   digitalWrite(GreenLED, LOW);
-  delay(500);
+  delay(1000);
 }
