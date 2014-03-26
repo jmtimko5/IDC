@@ -1,70 +1,171 @@
 /*
- * PIN SETUP
- * P13: DOUT
- * P12: DIN
- */
+Line Following Base Code with Four Sensors
+Digital Inputs should be 4-7, Right to Left
+From the POV of the Bot
+*/
 
-#include <Servo.h>                           // Include servo library
- 
-Servo servoRight;                            // Declare right servo
-Servo servoLeft;                            // Declare right servo
-int serialData = 0;
+#define IRR 4
+#define IRRC 5
+#define IRLC 6
+#define IRL 7
+#include <Servo.h>
 
+Servo leftServo; //define servos
+Servo rightServo;
+int calibDiff = 5;
 
-void setup()                                 // Built-in initialization block
+boolean senseTrigger = false;
+boolean verbose = true;
+boolean check = true;
+boolean check2 = true;
+
+int lineCount = 0;
+int vals[5] = {0, 0, 0, 0, 0};
+int val = 0; //final integer value!
+
+void setup() 
 {
-  servoRight.attach(12);                     // Attach right signal to pin 12
-  servoLeft.attach(13);                     // Attach right signal to pin 12
-  Serial.begin(9600);  
-  halt();
+  Serial.begin(9600);
+  leftServo.attach(13); //attach servos
+  rightServo.attach(12);
+  leftServo.write(90); //set to no movement
+  rightServo.write(90);
+}
+
+void Move(int left, int right) {
+ if (left == 1) {
+ leftServo.writeMicroseconds(1700);
+ } else if (left == 0) {
+   leftServo.writeMicroseconds(1500);
+ }
+ if (right == 1) {
+ rightServo.writeMicroseconds(1350);
+ } else if (right == 0) {
+   rightServo.writeMicroseconds(1500);
+  }
 }  
- 
-void loop()                                  // Main loop auto-repeats
-{
-  if (Serial.available() > 0)
-  {
-    serialData = Serial.read();
-    Serial.println(serialData);
-    switch (serialData) {
-      case 113:
-        leftForward();
-        break;
-     case 97:
-        leftBackward();
-        break;
-     case 119:
-        rightForward();
-        break;
-     case 115:
-        rightBackward();
-        break;
-     case 49:
-       halt();
-       break;
+
+long RCtime(int sensPin){
+   long result = 0;
+   pinMode(sensPin, OUTPUT);       // make pin OUTPUT
+   digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
+   (1);                       // wait a  ms to make sure cap is discharged
+
+   pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
+   digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
+   while(digitalRead(sensPin)){    // wait for pin to go low
+      result++;
+   }
+
+   return result;                   // report results
+} 
+
+void loop() {
+  int irl = RCtime(IRL) > calibDiff;
+  int irlc = RCtime(IRLC) > calibDiff;
+  int irrc = RCtime(IRRC) > calibDiff;
+  int irr = RCtime(IRR) > calibDiff;
+  
+  //check if done
+  if (lineCount == 5 && check) {
+     Serial.print("Done: ");
+     Serial.print("{");
+     for (int i=0; i<5; i++) {
+        val += vals[i];
+        Serial.print(vals[i]);
+        Serial.print(" ");
+      }
+      Serial.print("}");
+      Serial.print(" Total Integer: ");
+      Serial.println(val);
+      check = false;
       
+   } else if (lineCount == 6 && check2) {
+     //stop! staging area!
+     Move(0,0);
+     //wait for change!
+     delay(2000);
+     check2 = false;
+   
+   } else if (lineCount == 6 + val) {
+     //stop! final area!
+     Move(0,0);
+     //done...
+     
+   } else {
+    //runway code!
+    if (irl && irlc && irrc && irr) {
+      // All Black
+      Move(1,1);
+      if (verbose) {
+        Serial.println("All black");
+      }
+      
+         
+      //Marker: sense!
+      //Set sensing to true
+      senseTrigger = true;
+      if (lineCount < 5) {
+         Serial.print("senseTrigger true: ");
+        
+         //set the sensed result in the array at key linecount
+         int value = sense();
+         Serial.print(value);
+         if (value < 550) {
+            //we sensed white!
+            vals[lineCount] = 1;
+             Serial.println(" = WHITE");
+         } else {
+            //we sensed black!
+            vals[lineCount] = 0;
+             Serial.println(" = BLACK");
+         }
+      }
+      
+      //debug sensor
+      //Serial.println(sense());
+    } 
+      else if (!irl && !irlc && !irrc && !irr) {
+      //All White
+      Move(1,1);
+      if (verbose) {
+        Serial.println("All white");
+      }
     }
-
-  } 
+      else if (!irl && irlc && irrc && !irr) {
+      // Insides Black, Outsides White
+      Move(1,1);
+      
+      //Set sensing to false when back on the white
+      if (senseTrigger == true) {
+         senseTrigger = false;
+         Serial.print("Done sensing: ");
+         lineCount++;
+         Serial.println(lineCount);
+       }
+       if (verbose) {
+         Serial.println("Insides black, outsides white");
+       }
+    } 
+      else if (!irrc && !irr) {
+      // Two Right Sides white
+      Move(0,1);
+      if (verbose) {
+        Serial.println("Two right white");
+      }
+    } 
+     else if (!irl && !irlc) {
+      // Two Left Sides white
+      Move(1,0);
+      if (verbose) {
+        Serial.println("Two left white");
+      }
+    } 
+   
+  }
+}
+ 
+int sense() {
+   return RCtime(8);// > calibDiff;
 }
 
-
-void halt() {
-  servoRight.writeMicroseconds(1500);        // 1.5 ms stay still signal
-  servoLeft.writeMicroseconds(1500);         // 1.5 ms stay still signal
-}
-
-void leftForward() {
-  servoLeft.writeMicroseconds(1700);         // 1.5 ms stay still signal
-}
-
-void rightForward() {
-  servoRight.writeMicroseconds(1300);         // 1.5 ms stay still signal //tuned down
-}
-
-void leftBackward() {
-  servoLeft.writeMicroseconds(1300);         // 1.5 ms stay still signal
-}
-
-void rightBackward() {
-  servoRight.writeMicroseconds(1700);         // 1.5 ms stay still signal
-}
