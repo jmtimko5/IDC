@@ -17,7 +17,8 @@ Servo rightServo; //define servos
 int calibDiff=50;
 boolean flag=false;
 int CODE=0;
-int test=5;
+int test=3;
+int hashCount=0;
 
 void setup() 
 {
@@ -73,7 +74,13 @@ long colourMeasure()
   }
   long average=sum/50;
   //here we would put some sort of if tree to determine an integer value depending on colour
-  return average;
+  if (average>1600)
+  {
+    return 1;
+  }
+  else{
+  return 0;
+  }
 }
 
 void loop() 
@@ -83,30 +90,34 @@ void loop()
   int irlc=RCtime(IRLC) > calibDiff;
   int irrc=RCtime(IRRC) > calibDiff;
   int irr=RCtime(IRR) > calibDiff;
-  int hashCount=0;
   
   if (irl && irlc && irrc && irr) {
      // All Black
      Move(0,0);
-     tone(Speak, 440, 500);             //Tone so we know it works
+     //tone(Speak, 440, 500);             //Tone so we know it works
      delay(500);               
-     if (hashCount<4) {                 //if still in colour measuring part 
-     //CODE=CODE+colourMeasure();         //add measured value to CODE
+     if (hashCount<4)
+     {                 //if still in colour measuring part 
+     CODE=CODE+colourMeasure();         //add measured value to CODE
      hashCount++;
      }
      else
      {
-       if (hashCount>0) {
-       hashCount--;
-       }
-       else{
-       while(0==0)
+       if (CODE>0) 
        {
-       }
+       CODE--;
+       } 
+       else
+       {
+         while(0==0){
+       digitalWrite(9, HIGH);
+       delay(1000);
+       digitalWrite(9, LOW);
+         }
        }
      }
      Move(1,1);
-     delay(500); //so that it doesn't start measuring again when it's still on the black
+     delay(250); //so that it doesn't start measuring again when it's still on the black
   }
   else if (!irl && !irlc && !irrc && !irr) {
   //All white
