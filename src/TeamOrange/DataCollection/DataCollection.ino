@@ -27,11 +27,12 @@ long RCtime(int sensPin) {
 void loop()
 {
   long sum=0;
-  analogWrite(RedLED, 500);
+  analogWrite(RedLED, 255);
   delay(2000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
+    delay(10);
   }
   Serial.print("Red value:");
   Serial.print(RCtime(PT)/50);
@@ -40,7 +41,7 @@ void loop()
   analogWrite(RedLED, 0);
   delay(1000);
   
-  analogWrite(YelLED, 500);
+  analogWrite(YelLED, 255);
   delay(2000);
   for (int i=0; i<50; i++)
   {
@@ -54,7 +55,7 @@ void loop()
   analogWrite(YelLED, 0);
   delay(1000);
   
-  analogWrite(GreenLED, 500);
+  analogWrite(GreenLED, 255);
   delay(2000);
   for (int i=0; i<50; i++)
   {
