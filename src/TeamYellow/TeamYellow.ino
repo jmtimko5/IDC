@@ -1,5 +1,6 @@
 /*Four Sensors Digital Inputs should be 4-7, 
-Right to Left From the POV of the Bot stop at positionnum+4
+Right to Left From the POV of the Bot 
+stop at positionNum + 3
 */
 const int TxPin = 8;
 #include <Servo.h>
@@ -54,24 +55,18 @@ void setup()
   delay(1000);
 }
 
-void Move(int left, int right) 
+void Move(float left, float right) 
 {
- if (left == 1) 
- {
-   leftServo.writeMicroseconds(1700);
- } 
- else if (left == 0) 
- {
-   leftServo.writeMicroseconds(1500);
- }
- if (right == 1) 
- {
-   rightServo.writeMicroseconds(1350);
- } 
- else if (right == 0) 
- {
-   rightServo.writeMicroseconds(1500);
- }
+ float leftSpeed = mapfloat(left,0,1,1500,1700);
+ float rightSpeed = mapfloat(right,0,1,1500,1350);
+ Serial.println(leftSpeed);
+ 
+ leftServo.writeMicroseconds((int) leftSpeed);
+ rightServo.writeMicroseconds((int) rightSpeed);
+}
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) 
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 long volts(int adPin)
@@ -161,8 +156,6 @@ void loop()
     delay(10);
     Move(1,1);
     delay(400);
-    
-    //eventually add  pause for first three and read light state here
   }
   else if(!irlc && !irrc && !irl & !irr) // All White
   { 
