@@ -1,7 +1,7 @@
 
 #define RedLED A0
-#define YelLED A2
-#define GreenLED A3
+#define YelLED A3
+#define GreenLED A2
 #define PT 2
 
 void setup()
@@ -27,8 +27,8 @@ long RCtime(int sensPin) {
 void loop()
 {
   long sum=0;
-  digitalWrite(RedLED, HIGH);
-  delay(1000);
+  analogWrite(RedLED, 500);
+  delay(2000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
@@ -36,11 +36,12 @@ void loop()
   Serial.print("Red value:");
   Serial.print(RCtime(PT)/50);
   Serial.println();
-  digitalWrite(RedLED, LOW);
+  delay(10000);
+  analogWrite(RedLED, 0);
   delay(1000);
   
-  digitalWrite(YelLED, HIGH);
-  delay(500);
+  analogWrite(YelLED, 500);
+  delay(2000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
@@ -49,11 +50,12 @@ void loop()
   Serial.print("Yellow value:");
   Serial.print(RCtime(PT)/50);
   Serial.println();
-  digitalWrite(YelLED, LOW);
+  delay(10000);
+  analogWrite(YelLED, 0);
   delay(1000);
   
-  digitalWrite(GreenLED, HIGH);
-  delay(1000);
+  analogWrite(GreenLED, 500);
+  delay(2000);
   for (int i=0; i<50; i++)
   {
     sum=sum+RCtime(PT);
@@ -62,6 +64,7 @@ void loop()
   Serial.print("Green value:");
   Serial.print(RCtime(PT)/50);
   Serial.println();
-  digitalWrite(GreenLED, LOW);
+  delay(10000);
+  analogWrite(GreenLED, 0);
   delay(1000);
 }
