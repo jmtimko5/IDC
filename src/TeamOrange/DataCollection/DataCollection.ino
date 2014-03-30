@@ -9,19 +9,22 @@ void setup()
   Serial.begin(9600);
 }
 
-long RCtime(int sensPin) {
-  long result=0;
-  pinMode(sensPin, OUTPUT);      // make pin OUTPUT
-  digitalWrite(sensPin, HIGH);   // make pin HIGH to discharge capacitor - study the schematic
-  delay(1);                      // wait a ms to make sure cap is discharged
-  
-  pinMode(sensPin, INPUT);       // turn pin into an input and time till pin goes low
-  digitalWrite(sensPin, LOW);    // turn pullups off - or it won't work
-  while(digitalRead(sensPin)){   // wait for pin to go low
-    result++;
-  }
-  
-  return result;                  // report results
+long RCtime(int pin)                         // ..returns decay time
+{                                            
+  pinMode(pin, OUTPUT);                      // Charge capacitor
+  digitalWrite(pin, HIGH);                   // ..by setting pin ouput-high
+  delay(10);                                 // ..for 10 ms
+  pinMode(pin, INPUT);                       // Set pin to input
+  digitalWrite(pin, LOW);                    // ..with no pullup
+  long time  = micros();                     // Mark the time
+  while(digitalRead(pin));                   // Wait for voltage < threshold
+ 
+  time = micros() - time;                    // Calculate decay time
+ 
+  pinMode(pin, OUTPUT);                      // Discharge capacitor
+  digitalWrite(pin, LOW);                    // ...by setting pin output-low
+ 
+  return time;                               // Return decay time
 }
 
 void loop()
