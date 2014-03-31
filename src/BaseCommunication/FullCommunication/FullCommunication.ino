@@ -49,7 +49,7 @@ void sDelay(int mills) {
    communicate();
    communicateTimer = 0L;
   } 
-  for (int j=0;j < mills; j++) {
+  for (int j=0;j < mills; j+=5) {
     delay(5);
     if (millis() - communicateTimer > 20L) {
       communicate();
@@ -160,6 +160,7 @@ void communicate() {
               newOrder = i;
             }
           }
+          newOrder += 1;
           if (numFalses == 1) {
             debug(">>New Order Deduced",-100);
             foundOrder(newOrder);
@@ -211,7 +212,7 @@ int doIGo() {
     // Timer that resets itself every time a new bot moves
     if (arrayEqual(orderDeclared,orderDeclaredLastChecked) == false) {
       timeSinceLastMoved = millis();
-      memcpy(orderDeclared,orderDeclaredLastChecked,sizeof(orderDeclared));
+      memcpy(orderDeclaredLastChecked,orderDeclared,sizeof(orderDeclared));
       debug(">>A bot has moved!",-100);
     }
     // Only set this the first time
@@ -248,7 +249,7 @@ int doIGo() {
     } else if (myOrder == 0) {
       timeToWait = 100000L;
     } else {
-      timeToWait = 30000L + 5000L*myOrder;
+      timeToWait = 60000L + 10000L*myOrder;
     }
     if ((millis()-grandFallbackTimer) > timeToWait) {
       if ((myOrder == -1) || (myOrder == 0)) {
@@ -262,7 +263,7 @@ int doIGo() {
 void foundOrder(int orderNum) {
   debug(">>Found Order, requesting number ",orderNum);
   if ((orderNum <= 5) && (orderNum >= -1)) {
-    if ((orderDeclared[myOrder-1] == false) && (orderMoving[myOrder-1] == false) && (orderNum != -1)) {
+    if ((orderDeclared[orderNum-1] == false) && (orderMoving[orderNum-1] == false) && (orderNum != -1)) {
       myOrder = orderNum;
       orderDeclared[myOrder-1] = true;
     } else {
@@ -273,7 +274,7 @@ void foundOrder(int orderNum) {
     myOrder = -1;
     someoneDoesntKnow = true;
   }
-  debug(">>Found Order finished, we are now number  ",orderNum);
+  debug(">>Found Order finished, we are now number  ",myOrder);
   sendStatus();
 }
 
