@@ -162,14 +162,14 @@ void sendStatus() {
       data2 = String("?");
     } else if (imMoving) {
       // Ascii G-K
-      data2 = String(myOrder + 70);
+      data2 = String(char(myOrder + 70));
     } else {
       // Ascii g-k
-      data2 = String(myOrder + 102);
+      data2 = String(char(myOrder + 102));
     }
     String hash = checksum("=" + data2);
-    String packet = "=" + data2 + String(hash);
-    debug("Sending: "+packet);
+    String packet = "=" + data2 + hash;
+    debug("Sending: "+packet,-100);
     Xbee.print(packet);
   } 
 }
@@ -263,7 +263,7 @@ void debug(String text, int number) {
  } else {
    message = text;
  }
- //Serial.println(message);
+ Serial.println(message);
 } 
 
 
