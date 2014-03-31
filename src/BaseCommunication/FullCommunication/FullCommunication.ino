@@ -63,12 +63,14 @@ void communicate() {
   String filtered = "";
   int len;
   int i;
+  int readChar = 1;
   
   // Read whole buffer into String
-  while (Xbee.available()) {
+  while (Xbee.available() && readChar <=3) {
     //Read Character
     char receiving = Xbee.read();
     buffer += String(receiving);
+    readChar++;
   }
   if (buffer != "") {
     
@@ -76,14 +78,15 @@ void communicate() {
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
       char c = buffer.charAt(i);
-      if (!((c<97 && c>107) && (c<71 && c>75) && (c<48 && c>57) && (c != 61))) {
+      if ((c>=97 && c<=107) || (c>=71 && c<=75) || (c>=48 && c<=57) || (c == 61)) {
         filtered += String(c);
       }
     }
-    debug("We Recieved: " + buffer,-100);
+    debug("We Recieved: " + filtered,-100);
     
     // If we have the start of a 'packet'
     if (String(filtered.charAt(0)) == "=") {
+      debug("We Recieved: " + buffer,-100);
       String data = String(filtered.charAt(1));
       String hash = String(filtered.charAt(2));
       debug("packet: =" + data + hash,-100);
@@ -148,7 +151,7 @@ void communicate() {
   }
   
   // If it's been more than half a second, update our status
-  if (millis() - statusTimer > 1500L) {  
+  if ((millis() - statusTimer) > 1500L) {  
     sendStatus();
     statusTimer = millis();
   }
@@ -157,7 +160,7 @@ void communicate() {
 void sendStatus() {
   String data2 = "";
   // If we have our order number and it's unique
-  if ((myOrder != 0) && (orderDeclared[myOrder-1] == false) && (orderMoving[myOrder-1] == false)) {
+  if ((myOrder != 0)) {
     // There's been an error and don't know my number
     if (myOrder == -1) {
       data2 = String("?");
