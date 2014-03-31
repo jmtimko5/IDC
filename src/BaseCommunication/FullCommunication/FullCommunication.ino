@@ -12,7 +12,7 @@ SoftwareSerial Xbee (Rx, Tx);
 
 boolean orderDeclared[] = {false, false};
 boolean orderMoving[] =  {false, false};
-boolean orderDeclaredLastChecked[] = {false, false};
+boolean orderMovingLastChecked[] = {false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
  
@@ -114,7 +114,7 @@ void communicate() {
       if (checksum("=" + data) == hash) {
         // g-k declares an order position, G-K says you've started to go down the final stretch
         // As far as I can tell, charAt is the only way to typecast back to char
-        //debug("checksum confirmed",-100);
+        debug("checksum confirmed: ="+data+hash,-100);
         switch (data.charAt(0)) {
           case 'g':
             orderDeclared[0] = true;
@@ -210,11 +210,11 @@ int doIGo() {
     delay(20);
     
     // Timer that resets itself every time a new bot moves
-    if (arrayEqual(orderDeclared,orderDeclaredLastChecked) == false) {
+    if (arrayEqual(orderMoving,orderMovingLastChecked) == false) {
       timeSinceLastMoved = millis();
-      // Fuck C. orderDeclaredLastChecked = orderDeclared;
-      for (int j=0;j<sizeof(orderDeclared);j++) {
-        orderDeclaredLastChecked[j] = orderDeclared;
+      // Fuck C. orderMovingLastChecked = orderMoving;
+      for (int j=0;j<sizeof(orderMoving);j++) {
+        orderMovingLastChecked[j] = orderMoving[j];
       }
       debug(">>A bot has moved!",-100);
     }
@@ -228,12 +228,14 @@ int doIGo() {
       if (myOrder == 1) {
         debug(">>I'm going first",-100);
         imMoving = true;
+        orderMoving[myOrder-1] = true;
         return myOrder;
       }
       // Other basic case: person in front of me has gone
       if (orderMoving[myOrder-1] == true) {
         debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
         imMoving = true;
+        orderMoving[myOrder-1] = true;
         return myOrder;
       }
       // They haven't gone yet, but the person ahead of them has 
@@ -242,6 +244,7 @@ int doIGo() {
       if ((orderMoving[myOrder-1] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
         debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
         imMoving = true;
+        orderMoving[myOrder-1] = true;
         return myOrder;
       }
     }
@@ -259,6 +262,7 @@ int doIGo() {
         myOrder = sizeof(orderDeclared); //Might as well just put them last
       }
       debug(">>Grand Fallback Time Exceeded. Leaving as: ", myOrder);
+      orderMoving[myOrder-1] = true;
       return myOrder;
     }
   }
