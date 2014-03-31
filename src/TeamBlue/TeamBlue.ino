@@ -13,11 +13,20 @@ From the POV of the Bot
 Servo leftServo; //define servos
 Servo rightServo;
 int calibDiff = 40;
+
 int whiteCount = 0;
 int blackCount = 0;
 int whiteLastTime = 0;
 int blackLastTime = 0;
-int overrideTime = 500;
+int whiteOverrideTime = 400;
+int blackOverrideTime = 250;
+int allWhiteCount = 0;
+int allBlackCount = 0;
+
+int myNumber = 0;
+
+boolean senseMagnet;
+boolean lastSense;
 
 void setup() 
 {
@@ -26,20 +35,21 @@ void setup()
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
   rightServo.write(90);
+  pinMode(13,OUTPUT);
 }
 
-void Move(int left, int right) {
- if (left == 1) {
- leftServo.writeMicroseconds(1700);
- } else if (left == 0) {
-   leftServo.writeMicroseconds(1500);
- }
- if (right == 1) {
- rightServo.writeMicroseconds(1350);
- } else if (right == 0) {
-   rightServo.writeMicroseconds(1500);
-  }
-}  
+void Move(float left, float right) {
+ float leftSpeed = mapfloat(left,0,1,1500,1700);
+ float rightSpeed = mapfloat(right,0,1,1500,1350);
+ Serial.println(leftSpeed);
+ 
+ leftServo.writeMicroseconds((int) leftSpeed);
+ rightServo.writeMicroseconds((int) rightSpeed);
+}
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 long RCtime(int sensPin){
    long result = 0;
    pinMode(sensPin, OUTPUT);       // make pin OUTPUT
@@ -55,24 +65,67 @@ long RCtime(int sensPin){
    return result;                   // report results   
 }
 
+void displayMagnet() {
+  
+   senseMagnet = magnetState();
+   
+   if (senseMagnet && !lastSense) {
+     digitalWrite(13,HIGH);
+   } else if (!senseMagnet && lastSense) {
+     digitalWrite(13, LOW);
+   }
+   lastSense = senseMagnet;  
+  
+}
+boolean magnetState() {
+  int sensorValue = analogRead(A0);
+  return sensorValue > 500;
+}
 void onWhite() {
   int i;
-  if ((millis() - whiteLastTime) > overrideTime) {
-    whiteCount++;
-    whiteLastTime = millis();
+  allWhiteCount++;
+  if (allWhiteCount > 5) {
+    if ((millis() - whiteLastTime) > whiteOverrideTime) {
+      Serial.println(whiteCount);
+      whiteCount++;
+      whiteLastTime = millis();
+      if (whiteCount > 2) {
+        blackCount = -100;
+      }
+    }
   }
   if (whiteCount == 4) {
-    for (i=0;i<250;i++) {
-      Move(0,1);
+    for (i=0;i<100;i++) {
+      Move(.1,3);
       delay(1); 
     }
+    blackCount = -100;
   }
 }
 void onBlack() {
-  if ((millis() - blackLastTime) > overrideTime) {
-    blackCount++;
-    blackLastTime = millis();
+  int i;
+  allBlackCount++;
+  if (allBlackCount > 3) {
+    if ((millis() - blackLastTime) > blackOverrideTime) {
+      blackCount++;
+      blackLastTime = millis();
+    }
   }
+  if (blackCount == 6) {
+   Move(0,0);
+   delay(1500);
+   whiteCount = 0;
+  }
+  if (blackCount == (-94-myNumber)) {
+   Move(0,0);
+   while(1) {
+     delay(1000);
+   }
+  }
+}
+void resetColorCount() {
+  allWhiteCount = 0;
+  allBlackCount = 0;
 }
   
 
@@ -95,17 +148,32 @@ void loop() {
   }
     else if (!irl && irlc && irrc && !irr) {
     // Insides Black
-    
+    resetColorCount();
     Move(1,1);
   } 
     else if (!irrc && !irr) {
     // Two Right Sides white
     Move(0,1);
+    resetColorCount();
   } 
    else if (!irl && !irlc) {
     // Two Left Sides white
     Move(1,0);
+    resetColorCount();
   }
-   Serial.println(whiteCount);
-  }
+   //displayMagnet();
+   if (!(magnetState())) {
+     if ((blackCount > 0) && (blackCount < 6)) {
+       myNumber = blackCount;
+     }
+   }
+  
+}
+
+
+
+
+
+
+
  
