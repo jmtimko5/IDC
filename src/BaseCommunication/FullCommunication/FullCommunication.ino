@@ -4,6 +4,7 @@
  * P10: DIN
  */
 #include <SoftwareSerial.h>
+#include <Math.h>
  
 #define Rx 11 // DOUT to pin 11 
 #define Tx 10 // DIN to pin 10
@@ -25,29 +26,37 @@ void setup() {
  pinMode(7, INPUT);
  Serial.begin(9600); // Set to No line ending; 
  Xbee.begin(9600); // type a char, then hit enter
-
- Serial.println(checksum("hello"));
+ 
+ delay(3000);
+ foundOrder(3);
 }
  
 void loop() {
-
+  communicate();
+  delay(30);
 } 
 
 // Create a one character hexidecimal checksum (ascii a-f,0-9)
 String checksum(String data) {
-  long sum = 0L;
+  int sum = 0;
+  double math = 0;
   
   for (int i=0L;i<data.length();i++) {
-    sum += (long) ((char) data.charAt(i));
+    sum += (int) ((char) data.charAt(i));
   }
-  // The complicated mathematical hash generator:
-  sum = ((long) pow(sum,2L)) % 16L;
-  if (sum < 10L) {
+  math = (double) sum;
+  // The complicated mathematical hash generator. 1.8 is a good number.
+  math = pow(math,2) / 10.0;
+  sum = ((int) math) % 16;
+  
+  if (sum < 10) {
     // Return String character 0-9 (ascii 48-57)
-    return String(sum + 48L);
+    Serial.println(sum+48);
+    return String(char(sum + 48));
   } else {
     // Return String character a-f (ascii 97-102)
-    return String(sum + 87L);
+    Serial.println(sum+87);
+    return String(char(sum + 87));
   }
 }
 
@@ -251,5 +260,6 @@ void debug(String text, int number) {
  }
  Serial.println(message);
 } 
+
 
 
