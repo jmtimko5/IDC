@@ -21,6 +21,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
+int numBots = 2;
  
 void setup() {
  pinMode(9, OUTPUT);
@@ -154,7 +155,7 @@ void communicate() {
         if (myOrder == -1) {
           int numFalses = 0;
           int newOrder = 0;
-          for (i=0;i<sizeof(myOrder);i++) {
+          for (i=0;i<numBots;i++) {
             if (orderDeclared[i] == false) {
               numFalses++;
               newOrder = i;
@@ -213,7 +214,7 @@ int doIGo() {
     if (arrayEqual(orderMoving,orderMovingLastChecked) == false) {
       timeSinceLastMoved = millis();
       // Fuck C. orderMovingLastChecked = orderMoving;
-      for (int j=0;j<sizeof(orderMoving);j++) {
+      for (int j=0;j<numBots;j++) {
         orderMovingLastChecked[j] = orderMoving[j];
       }
       debug(">>A bot has moved!",-100);
@@ -259,7 +260,7 @@ int doIGo() {
     }
     if ((millis()-grandFallbackTimer) > timeToWait) {
       if ((myOrder == -1) || (myOrder == 0)) {
-        myOrder = sizeof(orderDeclared); //Might as well just put them last
+        myOrder = numBots; //Might as well just put them last
       }
       debug(">>Grand Fallback Time Exceeded. Leaving as: ", myOrder);
       orderMoving[myOrder-1] = true;
@@ -285,9 +286,10 @@ void foundOrder(int orderNum) {
   sendStatus();
 }
 
+// Yes, the length is hard coded. So don't use it in other code.
 boolean arrayEqual(boolean *a, boolean *b){
   int n;
-  int len = sizeof(a);
+  int len = numBots;
   
   for (n=0;n<len;n++) {
     if (a[n]!=b[n]) {
