@@ -51,11 +51,9 @@ String checksum(String data) {
   
   if (sum < 10) {
     // Return String character 0-9 (ascii 48-57)
-    Serial.println(sum+48);
     return String(char(sum + 48));
   } else {
     // Return String character a-f (ascii 97-102)
-    Serial.println(sum+87);
     return String(char(sum + 87));
   }
 }
@@ -72,75 +70,78 @@ void communicate() {
     char receiving = Xbee.read();
     buffer += String(receiving);
   }
-  
-  // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
-  for (i=0;i<buffer.length();i++) {
-    char c = buffer.charAt(i);
-    if (!((c<97 && c>107) && (c<71 && c>75) && (c<48 && c>57) && (c != 61))) {
-      filtered += String(c);
-    }
-  }
-  
-  // If we have the start of a 'packet'
-  if (String(filtered.charAt(0)) == "=") {
-    String data = String(filtered.charAt(1));
-    String hash = String(filtered.charAt(2));
-    debug("packet: =" + data + hash,-100);
+  if (buffer != "") {
+    debug("We Recieved: " + buffer,-100);
     
-    // Check for integrity of packet
-    if (checksum("=" + data) == hash) {
-      // g-k declares an order position, G-K says you've started to go down the final stretch
-      // As far as I can tell, charAt is the only way to typecast back to char
-      debug("checksum confirmed",-100);
-      switch (data.charAt(0)) {
-        case 'g':
-          orderDeclared[0] = true;
-          break;
-        case 'h':
-          orderDeclared[1] = true;
-          break;
-        case 'i':
-          orderDeclared[2] = true;
-          break;
-        case 'j':
-          orderDeclared[3] = true;
-          break;
-        case 'k':
-          orderDeclared[4] = true;
-          break;
-        case 'G':
-          orderMoving[0] = true;
-          break;
-        case 'H':
-          orderMoving[1] = true;
-          break;
-        case 'I':
-          orderMoving[2] = true;
-          break;
-        case 'J':
-          orderMoving[3] = true;
-          break;
-        case 'K':
-          orderMoving[4] = true;
-          break;
-        case '?':
-          someoneDoesntKnow = true;
-          break;      
+    // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
+    for (i=0;i<buffer.length();i++) {
+      char c = buffer.charAt(i);
+      if (!((c<97 && c>107) && (c<71 && c>75) && (c<48 && c>57) && (c != 61))) {
+        filtered += String(c);
       }
-      // if we were an unknown order but the rest have filled,  we can deduce ours
-      if (myOrder == -1) {
-        int numFalses = 0;
-        int newOrder = 0;
-        for (i=0;i<sizeof(myOrder);i++) {
-          if (orderDeclared[i] == false) {
-            numFalses++;
-            newOrder = i;
-          }
+    }
+    
+    // If we have the start of a 'packet'
+    if (String(filtered.charAt(0)) == "=") {
+      String data = String(filtered.charAt(1));
+      String hash = String(filtered.charAt(2));
+      debug("packet: =" + data + hash,-100);
+      
+      // Check for integrity of packet
+      if (checksum("=" + data) == hash) {
+        // g-k declares an order position, G-K says you've started to go down the final stretch
+        // As far as I can tell, charAt is the only way to typecast back to char
+        debug("checksum confirmed",-100);
+        switch (data.charAt(0)) {
+          case 'g':
+            orderDeclared[0] = true;
+            break;
+          case 'h':
+            orderDeclared[1] = true;
+            break;
+          case 'i':
+            orderDeclared[2] = true;
+            break;
+          case 'j':
+            orderDeclared[3] = true;
+            break;
+          case 'k':
+            orderDeclared[4] = true;
+            break;
+          case 'G':
+            orderMoving[0] = true;
+            break;
+          case 'H':
+            orderMoving[1] = true;
+            break;
+          case 'I':
+            orderMoving[2] = true;
+            break;
+          case 'J':
+            orderMoving[3] = true;
+            break;
+          case 'K':
+            orderMoving[4] = true;
+            break;
+          case '?':
+            someoneDoesntKnow = true;
+            break;      
         }
-        if (numFalses == 1) {
-          debug(">>New Order Deduced",-100);
-          foundOrder(newOrder);
-        } 
+        // if we were an unknown order but the rest have filled,  we can deduce ours
+        if (myOrder == -1) {
+          int numFalses = 0;
+          int newOrder = 0;
+          for (i=0;i<sizeof(myOrder);i++) {
+            if (orderDeclared[i] == false) {
+              numFalses++;
+              newOrder = i;
+            }
+          }
+          if (numFalses == 1) {
+            debug(">>New Order Deduced",-100);
+            foundOrder(newOrder);
+          } 
+        }
       }      
     }
   }
@@ -167,7 +168,8 @@ void sendStatus() {
       data2 = String(myOrder + 102);
     }
     String hash = checksum("=" + data2);
-    String packet = "=" + data2 + String(hash.charAt(0));
+    String packet = "=" + data2 + String(hash);
+    debug("Sending: "+packet);
     Xbee.print(packet);
   } 
 }
@@ -189,11 +191,13 @@ int doIGo() {
     // I am number one
     if (myOrder == 1) {
       debug(">>I'm going first",-100);
+      imMoving = true;
       return myOrder;
     }
     // Other basic case: person in front of me has gone
     if (orderMoving[myOrder-1] == true) {
       debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
+      imMoving = true;
       return myOrder;
     }
     // They haven't gone yet, but the person ahead of them has 
@@ -201,6 +205,7 @@ int doIGo() {
     // or the bot somehow totally died, so we go ahead anyways.
     if ((orderMoving[myOrder-1] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
       debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
+      imMoving = true;
       return myOrder;
     }
   }
@@ -258,7 +263,7 @@ void debug(String text, int number) {
  } else {
    message = text;
  }
- Serial.println(message);
+ //Serial.println(message);
 } 
 
 
