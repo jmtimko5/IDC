@@ -10,6 +10,9 @@ From the POV of the Bot
 #define IRL 7
 #define PT 2
 #define Speak 3
+#define RedLED A0
+#define BlueLED A2
+#define GreenLED A3
 #include <Servo.h>
 
 Servo leftServo;
@@ -49,43 +52,105 @@ void Move(int left, int right)
   }
 }
 
-long RCtime(int sensPin) {
-  long result=0;
-  pinMode(sensPin, OUTPUT);      // make pin OUTPUT
-  digitalWrite(sensPin, HIGH);   // make pin HIGH to discharge capacitor - study the schematic
-  delay(1);                      // wait a ms to make sure cap is discharged
-  
-  pinMode(sensPin, INPUT);       // turn pin into an input and time till pin goes low
-  digitalWrite(sensPin, LOW);    // turn pullups off - or it won't work
-  while(digitalRead(sensPin)){   // wait for pin to go low
-    result++;
-  }
-  
-  return result;                  // report results
+long RCtime(int sensPin){
+   long result = 0;
+   pinMode(sensPin, OUTPUT);       // make pin OUTPUT
+   digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
+   delay(1);                       // wait a  ms to make sure cap is discharged
+
+   pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
+   digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
+   while(digitalRead(sensPin)){    // wait for pin to go low
+      result++;
+   }
+
+   return result;                   // report results   
+} 
+
+long RCtimeColour(int pin)                         // ..returns decay time
+{                                            
+  pinMode(pin, OUTPUT);                      // Charge capacitor
+  digitalWrite(pin, HIGH);                   // ..by setting pin ouput-high
+  delay(10);                                 // ..for 10 ms
+  pinMode(pin, INPUT);                       // Set pin to input
+  digitalWrite(pin, LOW);                    // ..with no pullup
+  long time  = micros();                     // Mark the time
+  while(digitalRead(pin));                   // Wait for voltage < threshold
+ 
+  time = micros() - time;                    // Calculate decay time
+ 
+  pinMode(pin, OUTPUT);                      // Discharge capacitor
+  digitalWrite(pin, LOW);                    // ...by setting pin output-low
+ 
+  return time;                               // Return decay time
 }
 
-long colourMeasure()
+long redRC()
 {
-  long sum=0;
-  for (int i=0; i<50; i++)
+  analogWrite(RedLED, 255);
+  delay(1000);
+  long redrc=RCtimeColour(PT);
+ // Serial.print("Red value:");
+ // Serial.print(redrc);
+ // Serial.println();
+  delay(1000);
+  analogWrite(RedLED, 0);
+  delay(1000);
+  
+  return(redrc);
+}
+
+long blueRC()
+{
+  analogWrite(BlueLED, 255);
+  delay(1000);
+  long bluerc=RCtimeColour(PT);
+//  Serial.print("blue value:");
+ // Serial.print(bluerc);
+ // Serial.println();
+  delay(1000);
+  analogWrite(BlueLED, 0);
+  delay(1000);
+  
+  return(bluerc);
+}
+
+long greenRC()
+{
+  analogWrite(GreenLED, 255);
+  delay(1000);
+  long greenrc=RCtimeColour(PT);
+ // Serial.print("green value:");
+ // Serial.print(greenrc);
+ // Serial.println();
+  delay(1000);
+  analogWrite(GreenLED, 0);
+  delay(1000);
+  
+  return(greenrc);
+}
+
+long getInteger()
+{
+   if (blueRC()<4000)
   {
-    sum=sum+RCtime(PT);
-    delay(10);
-  }
-  long average=sum/50;
-  //here we would put some sort of if tree to determine an integer value depending on colour
-  if (average>1600)
-  {
+    Serial.println("White");
     return 1;
-  }
-  else{
-  return 0;
+  } else if (redRC()>25000) {
+    Serial.println("Green");
+    return 3;
+  } else if (greenRC()<15000) {
+    Serial.println("Yellow");
+    return 2;
+  } else {
+    Serial.println("Red");
+    return 0;
   }
 }
 
 void loop() 
 {
-  Serial.println(RCtime(IRR));
+  //Serial.println(RCtime(IRR));
   int irl=RCtime(IRL) > calibDiff;
   int irlc=RCtime(IRLC) > calibDiff;
   int irrc=RCtime(IRRC) > calibDiff;
@@ -96,16 +161,21 @@ void loop()
      Move(0,0);
      //tone(Speak, 440, 500);             //Tone so we know it works
      delay(500);               
-     if (hashCount<4)
+     if (hashCount<3)
      {                 //if still in colour measuring part 
-     CODE=CODE+colourMeasure();         //add measured value to CODE
+     CODE=CODE+getInteger();         //add measured value to CODE
      hashCount++;
+     //Serial.println(hashCount);
      }
-     else
+     else if(hashCount==3)
      {
-       if (CODE>0) 
+       Serial.println(CODE);
+       hashCount++;
+     } else
+     {
+       if ((5-CODE)>0) 
        {
-       CODE--;
+       CODE++;
        } 
        else
        {

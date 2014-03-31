@@ -1,7 +1,7 @@
 
 #define RedLED A0
-#define YelLED A3
-#define GreenLED A2
+#define BlueLED A2
+#define GreenLED A3
 #define PT 2
 
 void setup()
@@ -31,44 +31,35 @@ void loop()
 {
   long sum=0;
   analogWrite(RedLED, 255);
-  delay(2000);
-  for (int i=0; i<50; i++)
-  {
-    sum=sum+RCtime(PT);
-    delay(10);
-  }
+  delay(100);
   Serial.print("Red value:");
-  Serial.print(RCtime(PT)/50);
+  Serial.print(RCtime(PT));
   Serial.println();
-  delay(10000);
+  delay(100);
   analogWrite(RedLED, 0);
-  delay(1000);
+  delay(100);
   
-  analogWrite(YelLED, 255);
-  delay(2000);
-  for (int i=0; i<50; i++)
-  {
-    sum=sum+RCtime(PT);
-    delay(10);
-  }
-  Serial.print("Yellow value:");
-  Serial.print(RCtime(PT)/50);
+  analogWrite(BlueLED, 200);
+  delay(100);
+  Serial.print("Blue value:");
+  Serial.print(RCtime(PT));
   Serial.println();
-  delay(10000);
-  analogWrite(YelLED, 0);
-  delay(1000);
+  delay(100);
+  analogWrite(BlueLED, 0);
+  delay(100);
   
   analogWrite(GreenLED, 255);
-  delay(2000);
-  for (int i=0; i<50; i++)
-  {
-    sum=sum+RCtime(PT);
-    delay(10);
-  }
+  delay(100);
   Serial.print("Green value:");
-  Serial.print(RCtime(PT)/50);
+  Serial.print(RCtime(PT));
   Serial.println();
-  delay(10000);
+  delay(100);
   analogWrite(GreenLED, 0);
-  delay(1000);
+  delay(100);
+  
+  delay(100);
+  Serial.print("Nothing value:");
+  Serial.print(RCtime(PT));
+  Serial.println();
+  delay(100);
 }

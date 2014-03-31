@@ -11,15 +11,10 @@ void setup()                                 // Built-in initialization block
  
 void loop()                                  // Main loop auto-repeats
 {
-  long decayTime = rcTime(2);                // Uses rcTime function to calculate delay
-  int sum=0;
-  for (int i=0; i<50; i++)
-  {
-    sum=sum+rcTime(2);
-  }
+  long decayTime = rcTime(2);                // Uses rcTime function to calculate dela
  
   Serial.print("Decay time = ");             // Display time label
-  Serial.print(sum/50);                   // Display time value
+  Serial.print(decayTime);                   // Display time value
   Serial.println(" us");                    // Display time units
  
   delay(10);                                 // 10 ms delay
