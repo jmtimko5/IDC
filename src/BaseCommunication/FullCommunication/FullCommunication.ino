@@ -252,8 +252,13 @@ int doIGo() {
       // They haven't gone yet, but the person ahead of them has 
       // and it's been over 30 sec. We assume that either they went mute
       // or the bot somehow totally died, so we go ahead anyways.
-      if ((numBots > 2) && (orderMoving[myOrder-3] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
+      if ((myOrder > 2) && (orderMoving[myOrder-3] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
         debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
+        return myOrder;
+      }
+      // Same thing, but I'm bot number two
+      if ((myOrder == 2) && (millis()-timeSinceLastMoved)>30000L) {
+        debug(">>Bot 1 has timed out and I'm bot two. Leaving as: ",myOrder);
         return myOrder;
       }
     }
@@ -307,6 +312,7 @@ boolean arrayEqual(boolean *a, boolean *b){
   return true;
 }
 
+// Sets state to let other bots know who has moved
 void sendMoving() {
   imMoving = true;
   orderMoving[myOrder-1] = true;
