@@ -178,11 +178,23 @@ void communicate() {
   }
 }
 
-void sendStatus() {
-  String orderString = "Orders: "+String(orderDeclared[0])+String(orderDeclared[1])+String(orderDeclared[2])+String(orderDeclared[3])+String(orderDeclared[4]);
+// Let's us see the bot's logs on what numbers are taken
+void debugOrder() {
+  int j;
+  String orderString = "Orders: ";
+  for (j=0;j<numBots;j++) {
+    orderString = orderString + String(orderDeclared[j]);
+  }
   debug(orderString,-100);
-  String movingString = "Moving: "+String(orderMoving[0])+String(orderMoving[1])+String(orderMoving[2])+String(orderMoving[3])+String(orderMoving[4]);
-  debug(movingString,-100);
+  String movingString = "Moving: ";
+  for (j=0;j<numBots;j++) {
+    movingString = movingString + String(orderMoving[j]);
+  }
+  debug(movingString,-100); 
+} 
+
+void sendStatus() {
+  debugOrder();
   
   String data2 = "";
   // If we have our order number and it's unique
@@ -229,11 +241,11 @@ int doIGo() {
       if (myOrder == 1) {
         debug(">>I'm going first",-100);
         imMoving = true;
-        orderMoving[myOrder-1] = true;
+        orderMoving[0] = true;
         return myOrder;
       }
       // Other basic case: person in front of me has gone
-      if (orderMoving[myOrder-1] == true) {
+      if (orderMoving[myOrder-2] == true) {
         debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
         imMoving = true;
         orderMoving[myOrder-1] = true;
@@ -242,7 +254,7 @@ int doIGo() {
       // They haven't gone yet, but the person ahead of them has 
       // and it's been over 30 sec. We assume that either they went mute
       // or the bot somehow totally died, so we go ahead anyways.
-      if ((orderMoving[myOrder-1] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
+      if ((orderMoving[myOrder-2] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
         debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
         imMoving = true;
         orderMoving[myOrder-1] = true;
