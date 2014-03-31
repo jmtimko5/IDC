@@ -29,7 +29,6 @@ void setup() {
  Xbee.begin(9600); // type a char, then hit enter
  
  delay(3000);
- foundOrder(3);
 }
  
 void loop() {
@@ -105,19 +104,17 @@ void communicate() {
         filtered += String(c);
       }
     }
-    debug("We Recieved: " + filtered,-100);
     
     // If we have the start of a 'packet'
     if (String(filtered.charAt(0)) == "=") {
       String data = String(filtered.charAt(1));
       String hash = String(filtered.charAt(2));
-      debug("packet: =" + data + hash,-100);
       
       // Check for integrity of packet
       if (checksum("=" + data) == hash) {
         // g-k declares an order position, G-K says you've started to go down the final stretch
         // As far as I can tell, charAt is the only way to typecast back to char
-        debug("checksum confirmed",-100);
+        //debug("checksum confirmed",-100);
         switch (data.charAt(0)) {
           case 'g':
             orderDeclared[0] = true;
@@ -180,10 +177,10 @@ void communicate() {
 }
 
 void sendStatus() {
-//  String orderString = "Orders: "+String(orderDeclared[0])+String(orderDeclared[1])+String(orderDeclared[2])+String(orderDeclared[3])+String(orderDeclared[4]);
-//  debug(orderString,-100);
-//  String movingString = "Moving: "+String(orderMoving[0])+String(orderMoving[1])+String(orderMoving[2])+String(orderMoving[3])+String(orderMoving[4]);
-//  debug(movingString,-100);
+  String orderString = "Orders: "+String(orderDeclared[0])+String(orderDeclared[1])+String(orderDeclared[2])+String(orderDeclared[3])+String(orderDeclared[4]);
+  debug(orderString,-100);
+  String movingString = "Moving: "+String(orderMoving[0])+String(orderMoving[1])+String(orderMoving[2])+String(orderMoving[3])+String(orderMoving[4]);
+  debug(movingString,-100);
   
   String data2 = "";
   // If we have our order number and it's unique
