@@ -10,15 +10,16 @@
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-boolean orderDeclared[] = {false, false, false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false, false, false};
-boolean orderDeclaredLastChecked[] = {false, false, false, false, false, false};
+boolean orderDeclared[] = {false, false};
+boolean orderMoving[] =  {false, false};
+boolean orderDeclaredLastChecked[] = {false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
  
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
+long communicateTimer = 0;
 int myOrder = 0;
  
 void setup() {
@@ -32,9 +33,31 @@ void setup() {
 }
  
 void loop() {
-  communicate();
-  delay(30);
+  sDelay(5000);
+  foundOrder(2);
+  sDelay(5000);
+  int order = doIGo();
+  while(1) {
+    debug("I'm now finishing with Order: ",order);
+    sDelay(150);
+  }
+  
 } 
+
+// Delay function that allows for constant communication
+void sDelay(int mills) { 
+  if (millis() - communicateTimer > 20) {
+   communicate();
+   communicateTimer = 0L;
+  } 
+  for (int j=0;j < mills; j++) {
+    delay(5);
+    if (millis() - communicateTimer > 20L) {
+      communicate();
+      communicateTimer = 0L;
+    }
+  }
+}
 
 // Create a one character hexidecimal checksum (ascii a-f,0-9)
 String checksum(String data) {
@@ -86,7 +109,6 @@ void communicate() {
     
     // If we have the start of a 'packet'
     if (String(filtered.charAt(0)) == "=") {
-      debug("We Recieved: " + buffer,-100);
       String data = String(filtered.charAt(1));
       String hash = String(filtered.charAt(2));
       debug("packet: =" + data + hash,-100);
@@ -158,6 +180,11 @@ void communicate() {
 }
 
 void sendStatus() {
+//  String orderString = "Orders: "+String(orderDeclared[0])+String(orderDeclared[1])+String(orderDeclared[2])+String(orderDeclared[3])+String(orderDeclared[4]);
+//  debug(orderString,-100);
+//  String movingString = "Moving: "+String(orderMoving[0])+String(orderMoving[1])+String(orderMoving[2])+String(orderMoving[3])+String(orderMoving[4]);
+//  debug(movingString,-100);
+  
   String data2 = "";
   // If we have our order number and it's unique
   if ((myOrder != 0)) {
@@ -180,54 +207,59 @@ void sendStatus() {
 
 // Returns 0 to wait, your (new) order number if it is time for you to go
 int doIGo() {
-  // Timer that resets itself every time a new bot moves
-  if (arrayEqual(orderDeclared,orderDeclaredLastChecked) == false) {
-    timeSinceLastMoved = millis();
-    memcpy(orderDeclared,orderDeclaredLastChecked,sizeof(orderDeclared));
-    debug(">>A bot has moved!",-100);
-  }
-  // Only set this the first time
-  if (grandFallbackTimer != 0L) {
-    grandFallbackTimer = millis();
-  }
-  // Everything is going right so far
-  if ((myOrder != -1) && (myOrder != 0)) {
-    // I am number one
-    if (myOrder == 1) {
-      debug(">>I'm going first",-100);
-      imMoving = true;
+  while(1) {
+    communicate();
+    delay(20);
+    
+    // Timer that resets itself every time a new bot moves
+    if (arrayEqual(orderDeclared,orderDeclaredLastChecked) == false) {
+      timeSinceLastMoved = millis();
+      memcpy(orderDeclared,orderDeclaredLastChecked,sizeof(orderDeclared));
+      debug(">>A bot has moved!",-100);
+    }
+    // Only set this the first time
+    if (grandFallbackTimer != 0L) {
+      grandFallbackTimer = millis();
+    }
+    // Everything is going right so far
+    if ((myOrder != -1) && (myOrder != 0)) {
+      // I am number one
+      if (myOrder == 1) {
+        debug(">>I'm going first",-100);
+        imMoving = true;
+        return myOrder;
+      }
+      // Other basic case: person in front of me has gone
+      if (orderMoving[myOrder-1] == true) {
+        debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
+        imMoving = true;
+        return myOrder;
+      }
+      // They haven't gone yet, but the person ahead of them has 
+      // and it's been over 30 sec. We assume that either they went mute
+      // or the bot somehow totally died, so we go ahead anyways.
+      if ((orderMoving[myOrder-1] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
+        debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
+        imMoving = true;
+        return myOrder;
+      }
+    }
+    // Grand Fallback Time: in case everything has gone wrong, we can at least do a staggered start
+    long timeToWait = 0L;
+    if (myOrder == -1) {
+      timeToWait = 90000L;
+    } else if (myOrder == 0) {
+      timeToWait = 100000L;
+    } else {
+      timeToWait = 30000L + 5000L*myOrder;
+    }
+    if ((millis()-grandFallbackTimer) > timeToWait) {
+      if ((myOrder == -1) || (myOrder == 0)) {
+        myOrder = sizeof(orderDeclared); //Might as well just put them last
+      }
+      debug(">>Grand Fallback Time Exceeded. Leaving as: ", myOrder);
       return myOrder;
     }
-    // Other basic case: person in front of me has gone
-    if (orderMoving[myOrder-1] == true) {
-      debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
-      imMoving = true;
-      return myOrder;
-    }
-    // They haven't gone yet, but the person ahead of them has 
-    // and it's been over 30 sec. We assume that either they went mute
-    // or the bot somehow totally died, so we go ahead anyways.
-    if ((orderMoving[myOrder-1] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
-      debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
-      imMoving = true;
-      return myOrder;
-    }
-  }
-  // Grand Fallback Time: in case everything has gone wrong, we can at least do a staggered start
-  long timeToWait = 0;
-  if (myOrder == -1) {
-    timeToWait = 90000L;
-  } else if (myOrder == 0) {
-    timeToWait = 100000L;
-  } else {
-    timeToWait = 30000L + 5000L*myOrder;
-  }
-  if ((millis()-grandFallbackTimer) > timeToWait) {
-    if ((myOrder == -1) || (myOrder == 0)) {
-      myOrder = 5; //Might as well just put them last
-    }
-    debug(">>Grand Fallback Time Exceeded. Leaving as: ", myOrder);
-    return myOrder;
   }
 }
 void foundOrder(int orderNum) {
@@ -235,6 +267,7 @@ void foundOrder(int orderNum) {
   if ((orderNum <= 5) && (orderNum >= -1)) {
     if ((orderDeclared[myOrder-1] == false) && (orderMoving[myOrder-1] == false) && (orderNum != -1)) {
       myOrder = orderNum;
+      orderDeclared[myOrder-1] = true;
     } else {
       myOrder = -1;
       someoneDoesntKnow = true;
