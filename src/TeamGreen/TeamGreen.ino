@@ -19,7 +19,7 @@ int calibsen = 400;
 int counter = 0;
 int contact = 2; 
 int accu = 15;
-int c0 = 30; 
+int c0 = 0; 
 int c1 = 100; 
 int c2 = 200; 
 int c3 = 300; 
@@ -61,24 +61,30 @@ long RCtime(int sensPin){
 
    return result;                   // report results   
 } 
-int check(int dis){
- int peg = 0;
- if (dis >=c0 && dis <=c1){
-   peg = 1;
- }
-  if (dis >=c1 && dis <=c2){
-   peg = 2;
- }
-  if (dis >=c2 && dis <=c3){
-   peg = 3;
- }
-  if (dis >=c3 && dis <=c4){
-   peg = 4;
- }
-  if (dis >=c4 && dis <=c5){
-   peg = 5;
- }
-return peg; 
+
+int PegValue(int counting){
+  int Peg = 0;
+  if (counting >=c0 && counting <=c1){
+  Peg = 1;
+  }
+  
+  if (counting >c1 && counting <=c2){
+  Peg = 2;
+  }
+  
+  if (counting >c2 && counting <=c3){
+  Peg = 3;
+  }
+  
+  if (counting >c3 && counting <=c4){
+  Peg = 4;
+  }
+  
+  if (counting >c4 && counting <=c5){
+  Peg = 5;
+  }
+  
+  return Peg;
 }
 void loop() {
   //Serial.println(RCtime(onesens));
@@ -88,6 +94,7 @@ void loop() {
   int irlc = RCtime(IRLC) > calibDiff;
   int irrc = RCtime(IRRC) > calibDiff;
   int irr = RCtime(IRR) > calibDiff;
+  int Answer;
   
   if (irl && irlc && irrc && irr) {
     // All Black
@@ -114,18 +121,18 @@ void loop() {
   }
   if (d1 && contact==1 && counter>=0){ 
     counter++; 
-    Serial.println(counter); 
+    //Serial.println(counter); 
   }
   if (!d1 && contact==1 && counter>15){ 
     accu--;
     if (accu==0){
       contact--;
-      //report = check(counter); 
-      //Serial.println(report);
+      report = PegValue(counter); 
+      Serial.println(report);
       //Serial.println(counter);
     }  
     
-  } 
-   
-//    //Serial.println("counter");
+  }
 }
+
+ 
