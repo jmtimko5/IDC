@@ -16,7 +16,7 @@ boolean orderDeclaredLastChecked[] = {false, false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
  
-int statusTimer = 0;
+long statusTimer = 0;
 long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 int myOrder = 0;
@@ -71,7 +71,7 @@ void communicate() {
     buffer += String(receiving);
   }
   if (buffer != "") {
-    debug("We Recieved: " + buffer,-100);
+    
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
@@ -80,6 +80,7 @@ void communicate() {
         filtered += String(c);
       }
     }
+    debug("We Recieved: " + buffer,-100);
     
     // If we have the start of a 'packet'
     if (String(filtered.charAt(0)) == "=") {
@@ -147,7 +148,7 @@ void communicate() {
   }
   
   // If it's been more than half a second, update our status
-  if (millis() - statusTimer > 500) {  
+  if (millis() - statusTimer > 1500L) {  
     sendStatus();
     statusTimer = millis();
   }
