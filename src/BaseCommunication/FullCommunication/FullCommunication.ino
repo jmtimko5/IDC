@@ -33,10 +33,12 @@ void setup() {
 }
  
 void loop() {
-  sDelay(5000);
-  foundOrder(2);
-  sDelay(5000);
+  sDelay(10000);
+  foundOrder(1);
+  sDelay(30000);
   int order = doIGo();
+  sDelay(2000);
+  sendMoving();
   while(1) {
     debug("I'm now finishing with Order: ",order);
     sDelay(150);
@@ -240,24 +242,18 @@ int doIGo() {
       // I am number one
       if (myOrder == 1) {
         debug(">>I'm going first",-100);
-        imMoving = true;
-        orderMoving[0] = true;
         return myOrder;
       }
       // Other basic case: person in front of me has gone
       if (orderMoving[myOrder-2] == true) {
         debug(">>Bot in front has gone, I'm leaving as: ",myOrder);
-        imMoving = true;
-        orderMoving[myOrder-1] = true;
         return myOrder;
       }
       // They haven't gone yet, but the person ahead of them has 
       // and it's been over 30 sec. We assume that either they went mute
       // or the bot somehow totally died, so we go ahead anyways.
-      if ((orderMoving[myOrder-2] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
+      if ((numBots > 2) && (orderMoving[myOrder-3] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
         debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
-        imMoving = true;
-        orderMoving[myOrder-1] = true;
         return myOrder;
       }
     }
@@ -275,7 +271,6 @@ int doIGo() {
         myOrder = numBots; //Might as well just put them last
       }
       debug(">>Grand Fallback Time Exceeded. Leaving as: ", myOrder);
-      orderMoving[myOrder-1] = true;
       return myOrder;
     }
   }
@@ -287,6 +282,7 @@ void foundOrder(int orderNum) {
       myOrder = orderNum;
       orderDeclared[myOrder-1] = true;
     } else {
+      debug(">>Order Number Conflict or unsuccessful. Now -1",-100);
       myOrder = -1;
       someoneDoesntKnow = true;
     }
@@ -309,6 +305,11 @@ boolean arrayEqual(boolean *a, boolean *b){
     }
   }
   return true;
+}
+
+void sendMoving() {
+  imMoving = true;
+  orderMoving[myOrder-1] = true;
 }
 
 // Little serial debugging function. -100 as int makes it optional
