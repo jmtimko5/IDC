@@ -212,7 +212,10 @@ int doIGo() {
     // Timer that resets itself every time a new bot moves
     if (arrayEqual(orderDeclared,orderDeclaredLastChecked) == false) {
       timeSinceLastMoved = millis();
-      memcpy(orderDeclaredLastChecked,orderDeclared,sizeof(orderDeclared));
+      // Fuck C. orderDeclaredLastChecked = orderDeclared;
+      for (int j=0;j<sizeof(orderDeclared);j++) {
+        orderDeclaredLastChecked[j] = orderDeclared;
+      }
       debug(">>A bot has moved!",-100);
     }
     // Only set this the first time
