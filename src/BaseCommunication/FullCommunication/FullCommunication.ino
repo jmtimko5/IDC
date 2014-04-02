@@ -34,9 +34,8 @@ void setup() {
  
 void loop() {
   sDelay(10000);
-  sendDoge();
-  foundOrder(1);
-  sDelay(30000);
+  foundOrder(-1);
+  sDelay(10000);
   int order = doIGo();
   sDelay(2000);
   sendMoving();
@@ -49,7 +48,7 @@ void loop() {
 // Delay function that allows for constant communication
 // Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
-  if (millis() - communicateTimer > 20) {
+  if (millis() - communicateTimer > 10) {
    communicate();
    communicateTimer = 0L;
   } 
@@ -100,7 +99,7 @@ void communicate() {
     readChar++;
   }
   if (buffer != "") {
-    
+    debug("Buffer: "+buffer,-100);
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
@@ -221,7 +220,7 @@ void sendStatus() {
   } 
 }
 
-sendDoge() {
+void sendDoge() {
    Xbee.println("░░░░░░░░░▄░░░░░░░░░░░░░░▄");
    Xbee.println("░░░░░░░░▌▒█░░░░░░░░░░░▄▀▒▌");
    Xbee.println("░░░░░░░░▌▒▒█░░░░░░░░▄▀▒▒▒▐");
