@@ -22,7 +22,7 @@ Servo rightServo;
 
 //CALIBRATION
 int calibDiff = 5;
-int senseDiff = 450;
+int senseDiff = 250;
 int timeout = 5000; //(ticks)
 
 boolean senseTrigger = false;
@@ -82,6 +82,8 @@ long RCtime(int sensPin){
 } 
 
 void loop() {
+  
+  Serial.println(RCtime(8));
   
   int irl = RCtime(IRL) > calibDiff;
   int irlc = RCtime(IRLC) > calibDiff;
@@ -165,9 +167,9 @@ void loop() {
     }  else if (!irl && !irlc && !irrc && !irr) {
       //All White
       Move(1,1);
-      delay(1);
+      delay(3);
       Move(0,1);
-      delay(1);
+      delay(2);
       if (verbose) {
         Serial.println("All white");
       }
@@ -179,16 +181,30 @@ void loop() {
       //Set sensing to false when back on the white
       if (senseTrigger == true) {
          senseTrigger = false;
+         if (vals[lineCount] == 0) {
+           digitalWrite(LCD, HIGH);
+           delay(101);
+           digitalWrite(LCD, LOW);
+         } else {
+           digitalWrite(LCD, HIGH);
+           delay(101);
+           digitalWrite(LCD, LOW);
+           delay(101);
+           digitalWrite(LCD, HIGH);
+           delay(101);
+           digitalWrite(LCD, LOW);
+         }
+         
+         
          Serial.print("Done sensing: ");
          lineCount++;
          Serial.println(lineCount);
-         digitalWrite(LCD, HIGH);
-         delay(10);
-         digitalWrite(LCD, LOW);
+         
        }
        if (verbose) {
          Serial.println("Insides black, outsides white");
        }
+       
     } 
       else if (!irrc && !irr) {
       // Two Right Sides white
@@ -212,4 +228,3 @@ void loop() {
 int sense() {
    return RCtime(8);// > calibDiff;
 }
-
