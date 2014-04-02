@@ -6,7 +6,7 @@
 #include <Math.h>
  
 #define Rx 11 // DOUT to pin 11 
-#define Tx 10 // DIN to pin 10
+#define Tx 12 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
 boolean orderDeclared[] = {false, false};
@@ -34,6 +34,7 @@ void setup() {
  
 void loop() {
   sDelay(10000);
+  sendDoge();
   foundOrder(1);
   sDelay(30000);
   int order = doIGo();
@@ -218,6 +219,28 @@ void sendStatus() {
     debug("Sending: "+packet,-100);
     Xbee.print(packet);
   } 
+}
+
+sendDoge() {
+   Xbee.println("░░░░░░░░░▄░░░░░░░░░░░░░░▄");
+   Xbee.println("░░░░░░░░▌▒█░░░░░░░░░░░▄▀▒▌");
+   Xbee.println("░░░░░░░░▌▒▒█░░░░░░░░▄▀▒▒▒▐");
+   Xbee.println("░░░░░░░▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐");
+   Xbee.println("░░░░░▄▄▀▒░▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐");
+   Xbee.println("░░░▄▀▒▒▒░░░▒▒▒░░░▒▒▒▀██▀▒▌");
+   Xbee.println("░░▐▒▒▒▄▄▒▒▒▒░░░▒▒▒▒▒▒▒▀▄▒▒▌");
+   Xbee.println("░░▌░░▌█▀▒▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐");
+   Xbee.println("░▐░░░▒▒▒▒▒▒▒▒▌██▀▒▒░░░▒▒▒▀▄▌");
+   Xbee.println("░▌░▒▄██▄▒▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▌");
+   Xbee.println("▌▒▀▐▄█▄█▌▄░▀▒▒░░░░░░░░░░▒▒▒▐");
+   Xbee.println("▐▒▒▐▀▐▀▒░▄▄▒▄▒▒▒▒▒▒░▒░▒░▒▒▒▒▌");
+   Xbee.println("▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒▒▒░▒░▒░▒▒▐");
+   Xbee.println("░▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒░▒░▒░▒░▒▒▒▌");
+   Xbee.println("░▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▒▄▒▒▐");
+   Xbee.println("░░▀▄▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▄▒▒▒▒▌");
+   Xbee.println("░░░░▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀");
+   Xbee.println("░░░░░░▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀");
+   Xbee.println("░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▀▀");
 }
 
 // Returns 0 to wait, your (new) order number if it is time for you to go
