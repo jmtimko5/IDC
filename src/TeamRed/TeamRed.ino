@@ -13,18 +13,23 @@ From the POV of the Bot
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
-#define LCD 10
+#define LCD 13
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
 Servo leftServo; //define servos
 Servo rightServo;
+
+//CALIBRATION
 int calibDiff = 5;
+int senseDiff = 450;
+int timeout = 5000; //(ticks)
 
 boolean senseTrigger = false;
 boolean verbose = false;
 boolean check = true;
 boolean check2 = true;
+
 
 int lineCount = 0;
 int vals[5] = {0, 0, 0, 0, 0};
@@ -37,35 +42,37 @@ void setup()
   Serial.begin(14400);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
-  leftServo.write(90); //set to no movement
-  rightServo.write(90);
+  leftServo.writeMicroseconds(1500); //set to no movement
+  rightServo.writeMicroseconds(1500);
   
   //LCD
+  
   pinMode(LCD, OUTPUT);
   mySerial.begin(9600);
   //LCD INIT
   mySerial.write(12);                 // Clear             
-  mySerial.write(17);                 // Turn backlight on
   delay(5);                           // Required delay
   mySerial.print("RED SQUADRON");  // First line
   mySerial.write(13);                 // Form feed
   mySerial.print("Sensing phase...");   // Second line
   mySerial.write(220);                // A tone
-  delay(10);                        // Wait 1 sec
-  mySerial.write(18);                 // Turn backlight off
+  delay(2000);                        // Wait 1 sec
+
 }
 
 void Move(int left, int right) {
  if (left == 1) {
- leftServo.writeMicroseconds(1700);
- } else if (left == 0) {
+   leftServo.writeMicroseconds(1700);
+ } 
+ if (left == 0) {
    leftServo.writeMicroseconds(1500);
  }
  if (right == 1) {
  rightServo.writeMicroseconds(1350);
- } else if (right == 0) {
+ }
+ if (right == 0) {
    rightServo.writeMicroseconds(1500);
-  }
+ }
 }  
 
 long RCtime(int sensPin){
@@ -76,7 +83,7 @@ long RCtime(int sensPin){
 
    pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
    digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
-   while(digitalRead(sensPin)){    // wait for pin to go low
+   while(digitalRead(sensPin) && result < timeout){    // wait for pin to go low
       result++;
    }
 
@@ -84,11 +91,12 @@ long RCtime(int sensPin){
 } 
 
 void loop() {
+  
   int irl = RCtime(IRL) > calibDiff;
   int irlc = RCtime(IRLC) > calibDiff;
   int irrc = RCtime(IRRC) > calibDiff;
   int irr = RCtime(IRR) > calibDiff;
-  
+
   //check if done
   if (lineCount == 5 && check) {
      Serial.print("Done: ");
@@ -101,6 +109,8 @@ void loop() {
       Serial.print("}");
       Serial.print(" Total Integer: ");
       Serial.println(val);
+      mySerial.print(val);
+
       check = false;
       
    } else if (lineCount == 6 && check2) {
@@ -135,7 +145,7 @@ void loop() {
          //TODO: add value averaging
          int value = sense();
          Serial.print(value);
-         if (value < 550) {
+         if (value < senseDiff) {
             //we sensed white!
             vals[lineCount] = 1;
              Serial.println(" = WHITE");
@@ -148,10 +158,12 @@ void loop() {
       
       //debug sensor
       //Serial.println(sense());
-    } 
-      else if (!irl && !irlc && !irrc && !irr) {
+    }  else if (!irl && !irlc && !irrc && !irr) {
       //All White
       Move(1,1);
+      delay(2);
+      Move(0,1);
+      delay(1);
       if (verbose) {
         Serial.println("All white");
       }
