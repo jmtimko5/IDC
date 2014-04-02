@@ -6,7 +6,7 @@
 #include <Math.h>
  
 #define Rx 11 // DOUT to pin 11 
-#define Tx 12 // DIN to pin 10
+#define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
 boolean orderDeclared[] = {false, false, false};
@@ -34,14 +34,14 @@ void setup() {
  
 void loop() {
   sDelay(10000);
-  foundOrder(-1);
+  foundOrder(2);
   sDelay(10000);
   int order = doIGo();
   sDelay(2000);
   sendMoving();
   while(1) {
     debug("I'm now finishing with Order: ",order);
-    sDelay(150);
+    sDelay(1000);
   }
 } 
 
@@ -99,7 +99,7 @@ void communicate() {
     readChar++;
   }
   if (buffer != "") {
-    //debug("Buffer: "+buffer,-100);
+    debug("Buffer: "+buffer,-100);
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
