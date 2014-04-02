@@ -1,7 +1,6 @@
 /*
- * PIN SETUP
- * P11: DOUT
- * P10: DIN
+ * FullCommunication.ino
+ * The Full Communication Protocol and Implementation
  */
 #include <SoftwareSerial.h>
 #include <Math.h>
@@ -15,6 +14,7 @@ boolean orderMoving[] =  {false, false};
 boolean orderMovingLastChecked[] = {false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
+boolean debugging = true;
  
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
@@ -24,11 +24,11 @@ int myOrder = 0;
 int numBots = 2;
  
 void setup() {
- pinMode(9, OUTPUT);
- pinMode(7, INPUT);
- Serial.begin(9600); // Set to No line ending; 
- Xbee.begin(9600); // type a char, then hit enter
- 
+ // You should already have this in setup():
+ Serial.begin(9600); 
+
+ // XBee setup: 
+ Xbee.begin(9600);
  delay(3000);
 }
  
@@ -43,10 +43,10 @@ void loop() {
     debug("I'm now finishing with Order: ",order);
     sDelay(150);
   }
-  
 } 
 
 // Delay function that allows for constant communication
+// Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
   if (millis() - communicateTimer > 20) {
    communicate();
@@ -83,6 +83,7 @@ String checksum(String data) {
   }
 }
 
+// Overarching Send/Recieve Function
 void communicate() {
   String buffer = "";
   String filtered = "";
@@ -173,7 +174,7 @@ void communicate() {
     }
   }
   
-  // If it's been more than half a second, update our status
+  // If it's been more than 1.5 seconds, update our status
   if ((millis() - statusTimer) > 1500L) {  
     sendStatus();
     statusTimer = millis();
@@ -195,6 +196,7 @@ void debugOrder() {
   debug(movingString,-100); 
 } 
 
+// Called automatically by communicate() to broadcast our status
 void sendStatus() {
   debugOrder();
   
@@ -280,6 +282,8 @@ int doIGo() {
     }
   }
 }
+
+// Call this when you know your number, or with -1 if you don't
 void foundOrder(int orderNum) {
   debug(">>Found Order, requesting number ",orderNum);
   if ((orderNum <= 5) && (orderNum >= -1)) {
@@ -303,7 +307,6 @@ void foundOrder(int orderNum) {
 boolean arrayEqual(boolean *a, boolean *b){
   int n;
   int len = numBots;
-  
   for (n=0;n<len;n++) {
     if (a[n]!=b[n]) {
       return false;
@@ -318,15 +321,17 @@ void sendMoving() {
   orderMoving[myOrder-1] = true;
 }
 
-// Little serial debugging function. -100 as int makes it optional
+// Little serial debugging function. -100 as int makes the int argument optional
 void debug(String text, int number) {
- String message = "";
- if (number != -100) {
-   message = text + number;
- } else {
-   message = text;
+ if (debugging) {
+   String message = "";
+   if (number != -100) {
+     message = text + number;
+   } else {
+     message = text;
+   }
+   Serial.println(message);
  }
- Serial.println(message);
 } 
 
 
