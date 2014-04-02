@@ -21,7 +21,11 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
+<<<<<<< HEAD
 int numBots = 3;
+=======
+int numBots = 0;
+>>>>>>> ff92ee7cc7d3547fbf82bab6112e0134dd848d25
  
 void setup() {
  // You should already have this in setup():
