@@ -13,7 +13,7 @@ From the POV of the Bot
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
-#define LCD 13
+#define LCD 10
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
@@ -35,29 +35,20 @@ int lineCount = 0;
 int vals[5] = {0, 0, 0, 0, 0};
 int val = 0; //final integer value!
 
-SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
 void setup() 
 {
-  Serial.begin(14400);
+  Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.writeMicroseconds(1500); //set to no movement
   rightServo.writeMicroseconds(1500);
   
-  //LCD
-  
   pinMode(LCD, OUTPUT);
-  mySerial.begin(9600);
-  //LCD INIT
-  mySerial.write(12);                 // Clear             
-  delay(5);                           // Required delay
-  mySerial.print("RED SQUADRON");  // First line
-  mySerial.write(13);                 // Form feed
-  mySerial.print("Sensing phase...");   // Second line
-  mySerial.write(220);                // A tone
-  delay(2000);                        // Wait 1 sec
-
+  digitalWrite(LCD, HIGH);
+  delay(500);
+  digitalWrite(LCD, LOW);
+ 
 }
 
 void Move(int left, int right) {
@@ -100,24 +91,37 @@ void loop() {
   //check if done
   if (lineCount == 5 && check) {
      Serial.print("Done: ");
+      
+      
+      check = false;
+      
+   } else if (lineCount == 6 && check2) {
+     //stop! staging area!
+     Move(0,0);
+     Serial.print("Done: ");
      Serial.print("{");
      for (int i=0; i<5; i++) {
         val += vals[i];
         Serial.print(vals[i]);
         Serial.print(" ");
       }
+      if (val == 4) { val = 3; } //works
+      else if (val == 3) { val = 1; } //work
+      else if (val == 2) { val = 1; }
+      else if (val == 1) { val = 3; }
+      else if (val == 0) { val = 5; } //=works
+      
       Serial.print("}");
       Serial.print(" Total Integer: ");
       Serial.println(val);
-      mySerial.print(val);
-
-      check = false;
-      
-   } else if (lineCount == 6 && check2) {
-     //stop! staging area!
-     Move(0,0);
-     //wait for change!
-     delay(2000);
+      for (int i = 0; i < val; i++) {
+         digitalWrite(LCD, HIGH);
+         delay(500);
+         digitalWrite(LCD, LOW);
+         delay(500);
+      }
+       
+     //wait for change! todo
      check2 = false;
    
    } else if (lineCount == 6 + (6 - val)) {
@@ -161,7 +165,7 @@ void loop() {
     }  else if (!irl && !irlc && !irrc && !irr) {
       //All White
       Move(1,1);
-      delay(2);
+      delay(1);
       Move(0,1);
       delay(1);
       if (verbose) {
@@ -178,6 +182,9 @@ void loop() {
          Serial.print("Done sensing: ");
          lineCount++;
          Serial.println(lineCount);
+         digitalWrite(LCD, HIGH);
+         delay(10);
+         digitalWrite(LCD, LOW);
        }
        if (verbose) {
          Serial.println("Insides black, outsides white");
