@@ -4,6 +4,8 @@ Digital Inputs 4-7, Right to Left
 From the POV of the Bot
 */
 
+const int TxPin = 1;
+
 #define IRR 4
 #define IRRC 5
 #define IRLC 6
@@ -14,6 +16,10 @@ From the POV of the Bot
 #define BlueLED A2
 #define GreenLED A3
 #include <Servo.h>
+#include <SoftwareSerial.h>
+#include <ParallaxLCD.h>
+SoftwareSerial mySerial = SoftwareSerial(255, TxPin)
+
 
 Servo leftServo;
 Servo rightServo; //define servos
@@ -30,6 +36,12 @@ void setup()
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
   rightServo.write(90);
+  
+  pinMode(TxPin, OUTPUT);
+  digitalWrite(TxPin, HIGH);
+  
+  mySerial.begin(9600)
+  delay(100);
 }
 
 void Move(int left, int right)
@@ -135,15 +147,27 @@ long getInteger()
    if (blueRC()<4000)
   {
     Serial.println("White");
+    mySerial.print("White");
+    mySerial.write(13);
+    mySerial.print("1")
     return 1;
   } else if (redRC()>25000) {
     Serial.println("Green");
+    mySerial.print("Green");
+    mySerial.write(13);
+    mySerial.print("3")
     return 3;
   } else if (greenRC()<15000) {
     Serial.println("Yellow");
+    mySerial.print("Yellow");
+    mySerial.write(13);
+    mySerial.print("2")
     return 2;
   } else {
     Serial.println("Red");
+    mySerial.print("Red");
+    mySerial.write(13);
+    mySerial.print("0")
     return 0;
   }
 }
@@ -170,6 +194,8 @@ void loop()
      else if(hashCount==3)
      {
        Serial.println(CODE);
+       mySerial.write(12);
+       mySerial.print(CODE);
        hashCount++;
      } else
      {
