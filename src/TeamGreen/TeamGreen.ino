@@ -23,9 +23,11 @@ int c0 = 0;
 int c1 = 100; 
 int c2 = 200; 
 int c3 = 300; 
-int c4 = 400; 
-int c5 = 500;
+int c4 = 430; 
+int c5 = 1000;
 int report = 0; 
+int black = 0;
+int tick = 0; 
 void setup() 
 {
   Serial.begin(9600);
@@ -86,6 +88,21 @@ int PegValue(int counting){
   
   return Peg;
 }
+void onBlack(){
+  if(black==0 && tick!=report){
+    
+    Move(0,0);
+    tick++;
+    delay(3000);
+    black = 1; 
+  }
+  else if (black == 1){
+    Move(1,1);
+  }
+  else if(tick == report){
+  Move(0,0);
+  }
+}
 void loop() {
   //Serial.println(RCtime(onesens));
   //Serial.println("\n");
@@ -98,8 +115,10 @@ void loop() {
   
   if (irl && irlc && irrc && irr) {
     // All Black
-    Move(1,1);
-  } else if (irlc && irrc) {
+    onBlack();
+    //Serial.println(tick);
+  } 
+  else if (irlc && irrc) {
     // Insides Black
     Move(1,1);
   } else if (!irr && !irrc) {
@@ -109,6 +128,10 @@ void loop() {
     // Two Left Sides white
     Move(1,0);
   }
+  if (!irr && !irl){
+    black = 0; 
+  }
+  
   
   int d1 = RCtime(onesens) > calibsen;
   //int d2 = RCtime(twosens) > calibsen;
@@ -129,10 +152,8 @@ void loop() {
       contact--;
       report = PegValue(counter); 
       Serial.println(report);
-      //Serial.println(counter);
+      Serial.println(counter);
     }  
     
   }
 }
-
- 
