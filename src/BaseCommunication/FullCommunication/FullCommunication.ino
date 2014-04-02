@@ -9,9 +9,9 @@
 #define Tx 12 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-boolean orderDeclared[] = {false, false};
-boolean orderMoving[] =  {false, false};
-boolean orderMovingLastChecked[] = {false, false};
+boolean orderDeclared[] = {false, false, false};
+boolean orderMoving[] =  {false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -21,7 +21,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 2;
+int numBots = 0;
  
 void setup() {
  // You should already have this in setup():
@@ -221,7 +221,7 @@ void sendStatus() {
   } 
 }
 
-sendDoge() {
+void sendDoge() {
    Xbee.println("░░░░░░░░░▄░░░░░░░░░░░░░░▄");
    Xbee.println("░░░░░░░░▌▒█░░░░░░░░░░░▄▀▒▌");
    Xbee.println("░░░░░░░░▌▒▒█░░░░░░░░▄▀▒▒▒▐");
