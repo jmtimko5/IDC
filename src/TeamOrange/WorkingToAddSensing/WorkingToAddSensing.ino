@@ -11,37 +11,92 @@ const int TxPin = 1;
 #define IRLC 6
 #define IRL 7
 #define PT 2
-#define Speak 3
 #define RedLED A0
 #define BlueLED A2
 #define GreenLED A3
 #include <Servo.h>
 #include <SoftwareSerial.h>
 #include <ParallaxLCD.h>
-SoftwareSerial mySerial = SoftwareSerial(255, TxPin)
+SoftwareSerial mySerial = SoftwareSerial(255, TxPin);
 
 
 Servo leftServo;
 Servo rightServo; //define servos
 int calibDiff=50;
-boolean flag=false;
 int CODE=0;
-int test=3;
 int hashCount=0;
 
 void setup() 
 {
-  Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
   rightServo.write(90);
   
   pinMode(TxPin, OUTPUT);
-  digitalWrite(TxPin, HIGH);
+  digitalWrite(TxPin, HIGH); //set up LCD monitor
   
-  mySerial.begin(9600)
+  mySerial.begin(9600);
   delay(100);
+}
+
+void loop() 
+{
+  //Serial.println(RCtime(IRR));
+  int irl=RCtime(IRL) > calibDiff;        //check whether each QTI sees white or black
+  int irlc=RCtime(IRLC) > calibDiff;
+  int irrc=RCtime(IRRC) > calibDiff;
+  int irr=RCtime(IRR) > calibDiff;
+  
+  if (irl && irlc && irrc && irr) {
+     // All Black
+     Move(0,0);
+     delay(500);               
+     if (hashCount<3)
+     {                               //if still in colour measuring part 
+     CODE=CODE+getInteger();         //add measured value to CODE
+     hashCount++;                    //increase hashCount
+     }
+     else if(hashCount==3)           //if at the long hash
+     {   
+       mySerial.write(12);
+       mySerial.print(CODE);
+       hashCount++;                  //write integer value to LCD and increase hashCount
+     } else
+     {
+       if ((5-CODE)>0)               //Count down hashes to stop at correct place
+       {
+       CODE++;
+       } 
+       else
+       {
+         while(0==0){                //when at correct place enter infinite loop
+       digitalWrite(9, HIGH);
+       delay(1000);
+       digitalWrite(9, LOW);
+         }
+       }
+     }
+     Move(1,1);
+     delay(250); //so that it doesn't start measuring again when it's still on the black
+  }
+  else if (!irl && !irlc && !irrc && !irr) {
+  //All white
+  Move(1,1);
+  }
+  else if (!irl && irlc && irrc && !irr) {
+  //insides black
+  Move(1,1);
+  }
+  else if (!irrc && !irr) {
+  // two right sides white
+  Move(0,1);
+  }
+  else if (!irl && !irlc) {
+  // two left sides white
+  Move(1,0);
+  }
+
 }
 
 void Move(int left, int right)
@@ -99,12 +154,9 @@ long RCtimeColour(int pin)                         // ..returns decay time
 
 long redRC()
 {
-  analogWrite(RedLED, 255);
+  analogWrite(RedLED, 255);                  //Turn on red LED
   delay(1000);
-  long redrc=RCtimeColour(PT);
- // Serial.print("Red value:");
- // Serial.print(redrc);
- // Serial.println();
+  long redrc=RCtimeColour(PT);               //take rc time with red on
   delay(1000);
   analogWrite(RedLED, 0);
   delay(1000);
@@ -114,12 +166,9 @@ long redRC()
 
 long blueRC()
 {
-  analogWrite(BlueLED, 255);
+  analogWrite(BlueLED, 255);                //turn on blue LED
   delay(1000);
-  long bluerc=RCtimeColour(PT);
-//  Serial.print("blue value:");
- // Serial.print(bluerc);
- // Serial.println();
+  long bluerc=RCtimeColour(PT);             //take rc time with blue on
   delay(1000);
   analogWrite(BlueLED, 0);
   delay(1000);
@@ -129,12 +178,9 @@ long blueRC()
 
 long greenRC()
 {
-  analogWrite(GreenLED, 255);
+  analogWrite(GreenLED, 255);              //turn on green LED
   delay(1000);
-  long greenrc=RCtimeColour(PT);
- // Serial.print("green value:");
- // Serial.print(greenrc);
- // Serial.println();
+  long greenrc=RCtimeColour(PT);           //take rc time with green on
   delay(1000);
   analogWrite(GreenLED, 0);
   delay(1000);
@@ -142,94 +188,32 @@ long greenRC()
   return(greenrc);
 }
 
-long getInteger()
+long getInteger()                      //method to return the colour's integer based on predetermined rc time parameters
 {
-   if (blueRC()<4000)
+   if (blueRC()<5000)
   {
-    Serial.println("White");
+    mySerial.write(12);
     mySerial.print("White");
     mySerial.write(13);
-    mySerial.print("1")
+    mySerial.print("1");
     return 1;
   } else if (redRC()>25000) {
-    Serial.println("Green");
+    mySerial.write(12);
     mySerial.print("Green");
     mySerial.write(13);
-    mySerial.print("3")
+    mySerial.print("3");
     return 3;
-  } else if (greenRC()<15000) {
-    Serial.println("Yellow");
+  } else if (greenRC()<18000) {
+    mySerial.write(12);
     mySerial.print("Yellow");
     mySerial.write(13);
-    mySerial.print("2")
+    mySerial.print("2");
     return 2;
   } else {
-    Serial.println("Red");
+    mySerial.write(12);
     mySerial.print("Red");
     mySerial.write(13);
-    mySerial.print("0")
+    mySerial.print("0");
     return 0;
   }
-}
-
-void loop() 
-{
-  //Serial.println(RCtime(IRR));
-  int irl=RCtime(IRL) > calibDiff;
-  int irlc=RCtime(IRLC) > calibDiff;
-  int irrc=RCtime(IRRC) > calibDiff;
-  int irr=RCtime(IRR) > calibDiff;
-  
-  if (irl && irlc && irrc && irr) {
-     // All Black
-     Move(0,0);
-     //tone(Speak, 440, 500);             //Tone so we know it works
-     delay(500);               
-     if (hashCount<3)
-     {                 //if still in colour measuring part 
-     CODE=CODE+getInteger();         //add measured value to CODE
-     hashCount++;
-     //Serial.println(hashCount);
-     }
-     else if(hashCount==3)
-     {
-       Serial.println(CODE);
-       mySerial.write(12);
-       mySerial.print(CODE);
-       hashCount++;
-     } else
-     {
-       if ((5-CODE)>0) 
-       {
-       CODE++;
-       } 
-       else
-       {
-         while(0==0){
-       digitalWrite(9, HIGH);
-       delay(1000);
-       digitalWrite(9, LOW);
-         }
-       }
-     }
-     Move(1,1);
-     delay(250); //so that it doesn't start measuring again when it's still on the black
-  }
-  else if (!irl && !irlc && !irrc && !irr) {
-  //All white
-  Move(1,1);
-  }
-  else if (!irl && irlc && irrc && !irr) {
-  //insides black
-  Move(1,1);
-  }
-  else if (!irrc && !irr) {
-  // two right sides white
-  Move(0,1);
-  }
-  else if (!irl && !irlc) {
-  // two left sides white
-  Move(1,0);
-  }
-
 }
