@@ -34,7 +34,7 @@ void setup() {
  
 void loop() {
   sDelay(10000);
-  foundOrder(2);
+  foundOrder(1);
   sDelay(10000);
   int order = doIGo();
   sDelay(2000);
@@ -99,7 +99,7 @@ void communicate() {
     readChar++;
   }
   if (buffer != "") {
-    debug("Buffer: "+buffer,-100);
+    //debug("Buffer: "+buffer,-100);
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
