@@ -4,13 +4,18 @@ Digital Inputs should be 4-7, Right to Left
 From the POV of the Bot
 */
 
+
 #define IRR 4
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
+
+#define LCD 3
 #include <Servo.h>
+#include <SoftwareSerial.h> 
 #define onesens 8
 //#define twosens 9
+SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
 Servo leftServo; //define servos
 Servo rightServo;
@@ -31,11 +36,17 @@ int tick = 0;
 void setup() 
 {
   Serial.begin(9600);
+  mySerial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.write(90); //set to no movement
   rightServo.write(90);
+  pinMode(LCD, OUTPUT);
+  digitalWrite(LCD, HIGH);
+  mySerial.write(12);                 // Clear             
+  mySerial.write(17);
 }
+
 
 void Move(int left, int right) {
  if (left == 1) {
@@ -55,14 +66,17 @@ long RCtime(int sensPin){
    digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
    delay(1);                       // wait a  ms to make sure cap is discharged
 
+
    pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
    digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
    while(digitalRead(sensPin)){    // wait for pin to go low
       result++;
    }
 
+
    return result;                   // report results   
 } 
+
 
 int PegValue(int counting){
   int Peg = 0;
@@ -93,7 +107,7 @@ void onBlack(){
     
     Move(0,0);
     tick++;
-    delay(3000);
+    delay(1500);
     black = 1; 
   }
   else if (black == 1){
@@ -153,6 +167,10 @@ void loop() {
       report = PegValue(counter); 
       Serial.println(report);
       Serial.println(counter);
+      mySerial.print((String)report);  // First line
+      mySerial.write(13);                 // Form feed
+      mySerial.print((String)counter);   // Second line
+      
     }  
     
   }
