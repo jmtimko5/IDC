@@ -275,9 +275,9 @@ int doIGo() {
         return myOrder;
       }
       // They haven't gone yet, but the person ahead of them has 
-      // and it's been over 30 sec. We assume that either they went mute
+      // and it's been over 45 sec. We assume that either they went mute
       // or the bot somehow totally died, so we go ahead anyways.
-      if ((myOrder > 2) && (orderMoving[myOrder-3] == true) && ((millis()-timeSinceLastMoved)>30000L)) {
+      if ((myOrder > 2) && (orderMoving[myOrder-3] == true) && ((millis()-timeSinceLastMoved)>45000L)) {
         debug(">>Timeout for bot ahead, I'm leaving as: ",myOrder);
         return myOrder;
       }
@@ -290,11 +290,11 @@ int doIGo() {
     // Grand Fallback Time: in case everything has gone wrong, we can at least do a staggered start
     long timeToWait = 0L;
     if (myOrder == -1) {
-      timeToWait = 90000L;
+      timeToWait = 120000L;
     } else if (myOrder == 0) {
-      timeToWait = 100000L;
+      timeToWait = 130000L;
     } else {
-      timeToWait = 60000L + 10000L*myOrder;
+      timeToWait = 90000L + 10000L*myOrder;
     }
     if ((millis()-grandFallbackTimer) > timeToWait) {
       if ((myOrder == -1) || (myOrder == 0)) {
