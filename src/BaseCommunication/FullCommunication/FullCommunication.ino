@@ -245,6 +245,7 @@ void sendDoge() {
 // Returns 0 to wait, your (new) order number if it is time for you to go
 int doIGo() {
   debug(">>At black line, waiting to go.",-100);
+  timeSinceLastMoved = millis();
   while(1) {
     communicate();
     delay(20);
@@ -282,7 +283,7 @@ int doIGo() {
         return myOrder;
       }
       // Same thing, but I'm bot number two
-      if ((myOrder == 2) && (millis()-timeSinceLastMoved)>30000L) {
+      if ((myOrder == 2) && (millis()-timeSinceLastMoved)>45000L) {
         debug(">>Bot 1 has timed out and I'm bot two. Leaving as: ",myOrder);
         return myOrder;
       }
