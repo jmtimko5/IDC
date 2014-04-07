@@ -20,7 +20,7 @@ int whiteCount = 0;
 int blackCount = 0;
 int whiteLastTime = 0;
 int blackLastTime = 0;
-int whiteOverrideTime = 400;
+int whiteOverrideTime = 600;
 int blackOverrideTime = 250;
 int allWhiteCount = 0;
 int allBlackCount = 0;
@@ -37,8 +37,7 @@ void setup()
   Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
-  leftServo.write(90); //set to no movement
-  rightServo.write(90);
+  Move(0,0);
   pinMode(13,OUTPUT);
   
   // Init LCD Serial
@@ -67,6 +66,9 @@ void displayLCD(String text) {
 }
 void displayNewline() {
   mySerial.write(13);
+}
+void displayClear() {
+ mySerial.write(12); 
 }
 
 long RCtime(int sensPin){
@@ -98,7 +100,7 @@ void displayMagnet() {
 }
 boolean magnetState() {
   int sensorValue = analogRead(A0);
-  Serial.println(sensorValue);
+  //Serial.println(sensorValue);
   return sensorValue > 500;
 }
 void onWhite() {
@@ -108,17 +110,7 @@ void onWhite() {
     if ((millis() - whiteLastTime) > whiteOverrideTime) {
       whiteCount++;
       whiteLastTime = millis();
-      if (whiteCount > 2) {
-        blackCount = -100;
-      }
     }
-  }
-  if (whiteCount == 4) {
-    for (i=0;i<100;i++) {
-      Move(.1,3);
-      delay(1); 
-    }
-    blackCount = -100;
   }
 }
 void onBlack() {
@@ -130,64 +122,83 @@ void onBlack() {
       blackLastTime = millis();
     }
   }
-  if (blackCount == 6) {
-   Move(0,0);
-   delay(1500);
-   whiteCount = 0;
-  }
-  if (blackCount == (-94-myNumber)) {
-   Move(0,0);
-   while(1) {
-     delay(1000);
-   }
-  }
 }
 void resetColorCount() {
   allWhiteCount = 0;
   allBlackCount = 0;
 }
-  
+
+// Follow lines until we've reached the specified number of stops. -1 to ignore a kind of stop
+void lineFollow(int whiteStops, int blackStops) {
+  blackCount = 0;
+  whiteCount = 0;
+  while (((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) {
+    int irl = RCtime(IRL) > calibDiff;
+    int irlc = RCtime(IRLC) > calibDiff;
+    int irrc = RCtime(IRRC) > calibDiff;
+    int irr = RCtime(IRR) > calibDiff;  
+    //Serial.println(String(whiteCount)+" "+String(blackCount));
+    //displayClear();
+    //displayLCD(String(whiteCount));
+    if (irl && irlc && irrc && irr) {
+      // All Black
+      onBlack();
+      Move(1,1);
+    } 
+      else if (!irl && !irlc && !irrc && !irr) {
+      //All White
+      onWhite();
+      Move(1,1);
+    }
+      else if (!irl && irlc && irrc && !irr) {
+      // Insides Black
+      resetColorCount();
+      Move(1,1);
+    } 
+      else if (!irrc && !irr) {
+      // Two Right Sides white
+      Move(0,1);
+      resetColorCount();
+    } 
+     else if (!irl && !irlc) {
+      // Two Left Sides white
+      Move(1,0);
+      resetColorCount();
+    }
+    if (!(magnetState())) {
+       if ((blackCount > 0) && (blackCount < 6)) {
+         myNumber = blackCount;
+         displayLCD((String) myNumber);
+       }
+     }
+    
+  }
+}
 
 void loop() {
-  int irl = RCtime(IRL) > calibDiff;
-  int irlc = RCtime(IRLC) > calibDiff;
-  int irrc = RCtime(IRRC) > calibDiff;
-  int irr = RCtime(IRR) > calibDiff;
-  
-  
-  if (irl && irlc && irrc && irr) {
-    // All Black
-    onBlack();
-    Move(1,1);
-  } 
-    else if (!irl && !irlc && !irrc && !irr) {
-    //All White
-    onWhite();
-    Move(1,1);
+  delay(5000);
+  lineFollow(-1,6);
+  displayClear();
+  displayLCD("Found number: "+String(myNumber,DEC));
+  Move(0,0);
+  delay(5000);
+  lineFollow(4,-1);
+  displayClear();
+  displayLCD("Turning a bit");
+  int i;
+  for (i=0;i<400;i++) {
+      Move(.1,3);
+      delay(1); 
   }
-    else if (!irl && irlc && irrc && !irr) {
-    // Insides Black
-    resetColorCount();
-    Move(1,1);
-  } 
-    else if (!irrc && !irr) {
-    // Two Right Sides white
-    Move(0,1);
-    resetColorCount();
-  } 
-   else if (!irl && !irlc) {
-    // Two Left Sides white
-    Move(1,0);
-    resetColorCount();
+  displayNewline();
+  displayLCD("Continuing to "+String(myNumber,DEC));
+  lineFollow(-1,6-myNumber);
+  displayClear();
+  displayLCD("Finished as "+String(myNumber,DEC));
+  while(1) {
+    Move(0,0);
+    delay(1000);
   }
-   //displayMagnet();
-   if (!(magnetState())) {
-     if ((blackCount > 0) && (blackCount < 6)) {
-       myNumber = blackCount;
-       displayLCD((String) myNumber);
-     }
-   }
-  
 }
 
 
