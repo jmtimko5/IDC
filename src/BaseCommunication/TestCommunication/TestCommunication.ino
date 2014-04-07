@@ -9,6 +9,32 @@
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
+#define IRR 4
+#define IRRC 5
+#define IRLC 6
+#define IRL 7
+#define LCD 3
+#include <Servo.h>
+#include <SoftwareSerial.h>
+
+Servo leftServo; //define servos
+Servo rightServo;
+int calibDiff = 40;
+
+int whiteCount = 0;
+int blackCount = 0;
+int whiteLastTime = 0;
+int blackLastTime = 0;
+int whiteOverrideTime = 600;
+int blackOverrideTime = 250;
+int allWhiteCount = 0;
+int allBlackCount = 0;
+
+int myNumber = 0;
+
+boolean senseMagnet;
+boolean lastSense;
+
 boolean orderDeclared[] = {false, false, false};
 boolean orderMoving[] =  {false, false, false};
 boolean orderMovingLastChecked[] = {false, false, false};
@@ -38,7 +64,7 @@ void setup() {
  
 void loop() {
   sDelay(5000);
-  lineFollow(-1,5);
+  lineFollow(-1,6);
   
   foundOrder(2);
   Move(0,0);
