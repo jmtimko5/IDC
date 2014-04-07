@@ -64,14 +64,16 @@ void setup() {
  
 void loop() {
   sDelay(5000);
-  lineFollow(-1,6);
+  sDelay(10000);//lineFollow(-1,6);
   
   foundOrder(2);
   Move(0,0);
   sDelay(5000);
   int order = doIGo();
   
-  lineFollow(4,-1); 
+  sDelay(2000);//lineFollow(4,-1);
+  Move(0,0);
+  sDelay(1000); 
   int i;
   for (i=0;i<400;i++) {
       Move(.1,3);
@@ -235,7 +237,7 @@ void communicate() {
     readChar++;
   }
   if (buffer != "") {
-    //debug("Buffer: "+buffer,-100);
+    debug("Buffer: "+buffer,-100);
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
