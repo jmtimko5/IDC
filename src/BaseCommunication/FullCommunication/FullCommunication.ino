@@ -34,7 +34,7 @@ void setup() {
  
 void loop() {
   sDelay(10000);
-  foundOrder(1);
+  foundOrder(2);
   sDelay(10000);
   int order = doIGo();
   sDelay(2000);
@@ -244,6 +244,7 @@ void sendDoge() {
 
 // Returns 0 to wait, your (new) order number if it is time for you to go
 int doIGo() {
+  debug(">>At black line, waiting to go.",-100);
   while(1) {
     communicate();
     delay(20);
