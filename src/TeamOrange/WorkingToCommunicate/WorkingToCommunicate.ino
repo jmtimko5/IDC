@@ -4,7 +4,7 @@ Digital Inputs 4-7, Right to Left
 From the POV of the Bot
 */
 
-const int TxPin = 1;
+const int TxPin = 10;
 
 #define IRR 4
 #define IRRC 5
@@ -15,12 +15,12 @@ const int TxPin = 1;
 #define BlueLED A2
 #define GreenLED A3
 #define Rx 11
-#define Tx 10
+#define Tx 8
 #include <Servo.h>
 #include <SoftwareSerial.h>
 #include <ParallaxLCD.h>
 #include <Math.h>
-SoftwareSerial mySerial = SoftwareSerial(255, TxPin);
+//SoftwareSerial mySerial = SoftwareSerial(255, TxPin);
 SoftwareSerial Xbee (Rx, Tx);
 
 
@@ -30,9 +30,9 @@ int calibDiff=50;
 int CODE=0;
 int hashCount=0;
 
-boolean orderDeclared[] = {false, false, false};
-boolean orderMoving[] =  {false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false};
+boolean orderDeclared[] = {false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -42,7 +42,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 3;
+int numBots = 4;
 
 void setup() 
 {
@@ -54,7 +54,8 @@ void setup()
   pinMode(TxPin, OUTPUT);
   digitalWrite(TxPin, HIGH); //set up LCD monitor
   
-  mySerial.begin(9600);
+ // mySerial.begin(9600);
+  Serial.begin(9600);
   Xbee.begin(9600);
   delay(3000);
 }
@@ -78,8 +79,8 @@ void loop()
      }
      else if(hashCount==3)           //if at the long hash
      {   
-       mySerial.write(12);
-       mySerial.print(CODE);
+  //     mySerial.write(12);
+  //     mySerial.print(CODE);
        foundOrder(CODE);
        hashCount++;                  //write integer value to LCD and increase hashCount
        int OrderNum=doIGo();
@@ -89,7 +90,7 @@ void loop()
        {
          if (hashCount==4){
            sendMoving();
-           CODE++
+           CODE++;
          }
          else{
        CODE++;}
@@ -127,6 +128,7 @@ void loop()
 
 void Move(int left, int right)
 {
+  sDelay(0);
   if (left ==1)
   {
     leftServo.writeMicroseconds(1700);
@@ -181,11 +183,11 @@ long RCtimeColour(int pin)                         // ..returns decay time
 long redRC()
 {
   analogWrite(RedLED, 255);                  //Turn on red LED
-  delay(1000);
+  delay(250);
   long redrc=RCtimeColour(PT);               //take rc time with red on
-  delay(1000);
+  delay(250);
   analogWrite(RedLED, 0);
-  delay(1000);
+  delay(250);
   
   return(redrc);
 }
@@ -193,11 +195,11 @@ long redRC()
 long blueRC()
 {
   analogWrite(BlueLED, 255);                //turn on blue LED
-  delay(1000);
+  delay(250);
   long bluerc=RCtimeColour(PT);             //take rc time with blue on
-  delay(1000);
+  delay(250);
   analogWrite(BlueLED, 0);
-  delay(1000);
+  delay(250);
   
   return(bluerc);
 }
@@ -205,11 +207,11 @@ long blueRC()
 long greenRC()
 {
   analogWrite(GreenLED, 255);              //turn on green LED
-  delay(1000);
+  delay(250);
   long greenrc=RCtimeColour(PT);           //take rc time with green on
-  delay(1000);
+  delay(250);
   analogWrite(GreenLED, 0);
-  delay(1000);
+  delay(250);
   
   return(greenrc);
 }
@@ -218,28 +220,28 @@ long getInteger()                      //method to return the colour's integer b
 {
    if (blueRC()<5000)
   {
-    mySerial.write(12);
-    mySerial.print("White");
-    mySerial.write(13);
-    mySerial.print("1");
+  //  mySerial.write(12);
+  //  mySerial.print("White");
+  //  mySerial.write(13);
+  //  mySerial.print("1");
     return 1;
   } else if (redRC()>25000) {
-    mySerial.write(12);
-    mySerial.print("Green");
-    mySerial.write(13);
-    mySerial.print("3");
+ //   mySerial.write(12);
+ //   mySerial.print("Green");
+ //   mySerial.write(13);
+ //   mySerial.print("3");
     return 3;
   } else if (greenRC()<18000) {
-    mySerial.write(12);
-    mySerial.print("Yellow");
-    mySerial.write(13);
-    mySerial.print("2");
+  //  mySerial.write(12);
+  //  mySerial.print("Yellow");
+  //  mySerial.write(13);
+  //  mySerial.print("2");
     return 2;
   } else {
-    mySerial.write(12);
-    mySerial.print("Red");
-    mySerial.write(13);
-    mySerial.print("0");
+  //  mySerial.write(12);
+  //  mySerial.print("Red");
+  //  mySerial.write(13);
+  //  mySerial.print("0");
     return 0;
   }
 }
