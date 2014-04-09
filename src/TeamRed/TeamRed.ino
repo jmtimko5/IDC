@@ -5,20 +5,28 @@ From the POV of the Bot
 //pin 9 broken
 
 //TODO:
-//-averaging values, fixing corner, qti protection, lcd state indication
+//-averaging values
 //communication and when to go
 */
+
+#define din 3
+#define dout 2
 
 #define IRR 4
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
-#define LCD 10
+#define led 10
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
+
+SoftwareSerial mySerial = SoftwareSerial(255, 11);
+
 Servo leftServo; //define servos
 Servo rightServo;
+
+boolean battery = true; 
 
 //CALIBRATION
 int calibDiff = 5;
@@ -38,17 +46,25 @@ int val = 0; //final integer value!
 
 void setup() 
 {
-  Serial.begin(9600);
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   leftServo.writeMicroseconds(1500); //set to no movement
   rightServo.writeMicroseconds(1500);
   
-  pinMode(LCD, OUTPUT);
-  digitalWrite(LCD, HIGH);
+  //init led
+  pinMode(led, OUTPUT);
+  digitalWrite(led, HIGH);
   delay(500);
-  digitalWrite(LCD, LOW);
+  digitalWrite(led, LOW);
  
+  //lcd shiz
+  //pinMode(11, OUTPUT);
+  //digitalWrite(11, HIGH);
+  mySerial.begin(9600);
+  delay(500);                        // Wait 3 seconds
+  //mySerial.write(18);                 // Turn backlight off
+  
+  Serial.begin(9600);
 }
 
 void Move(int left, int right) {
@@ -82,6 +98,8 @@ long RCtime(int sensPin){
 } 
 
 void loop() {
+  //mySerial.write(12); //clear
+  //mySerial.print("Moving...");
   
   Serial.println(RCtime(8));
   
@@ -106,33 +124,22 @@ void loop() {
         val += vals[i];
         Serial.print(vals[i]);
         Serial.print(" ");
-      }
-      if (val == 4) { val = 3; } //works
-      else if (val == 3) { val = 1; } //work
-      else if (val == 2) { val = 1; }
-      else if (val == 1) { val = 3; }
-      else if (val == 0) { val = 5; } //=works
+        //clear the recorded value
+     }
+
       
-      Serial.print("}");
-      Serial.print(" Total Integer: ");
-      Serial.println(val);
-      for (int i = 0; i < val; i++) {
-         digitalWrite(LCD, HIGH);
-         delay(500);
-         digitalWrite(LCD, LOW);
-         delay(500);
-      }
-       
-     //wait for change! todo
+     displayVal();
+      
+     //wait for change! change to false to go.
      check2 = false;
-   
+        
    } else if (lineCount == 6 + (6 - val)) {
      //stop! final area!
      Move(0,0);
      //done...
      
    } else {
-    //runway code!
+    //hash mark code!
     if (irl && irlc && irrc && irr) {
       // All Black
       Move(1,1);
@@ -151,6 +158,7 @@ void loop() {
          //TODO: add value averaging
          int value = sense();
          Serial.print(value);
+         
          if (value < senseDiff) {
             //we sensed white!
             vals[lineCount] = 1;
@@ -166,10 +174,10 @@ void loop() {
       //Serial.println(sense());
     }  else if (!irl && !irlc && !irrc && !irr) {
       //All White
-      Move(1,1);
-      delay(3);
       Move(0,1);
-      delay(2);
+      delay((battery) ? 2 : 3);
+      Move(1,1);
+      delay((battery) ? 1 : 2);
       if (verbose) {
         Serial.println("All white");
       }
@@ -182,17 +190,17 @@ void loop() {
       if (senseTrigger == true) {
          senseTrigger = false;
          if (vals[lineCount] == 0) {
-           digitalWrite(LCD, HIGH);
+           digitalWrite(led, HIGH);
            delay(101);
-           digitalWrite(LCD, LOW);
+           digitalWrite(led, LOW);
          } else {
-           digitalWrite(LCD, HIGH);
+           digitalWrite(led, HIGH);
            delay(101);
-           digitalWrite(LCD, LOW);
+           digitalWrite(led, LOW);
            delay(101);
-           digitalWrite(LCD, HIGH);
+           digitalWrite(led, HIGH);
            delay(101);
-           digitalWrite(LCD, LOW);
+           digitalWrite(led, LOW);
          }
          
          
@@ -227,4 +235,17 @@ void loop() {
  
 int sense() {
    return RCtime(8);// > calibDiff;
+}
+
+void displayVal() {
+  //while (true) { 
+    for (int i = 0; i < val; i++) {
+           digitalWrite(led, HIGH);
+           delay(200);
+           digitalWrite(led, LOW);
+           delay(200);
+      }
+      mySerial.print(val); 
+      delay(1000);
+  //}
 }
