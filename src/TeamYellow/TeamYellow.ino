@@ -2,19 +2,20 @@
 Right to Left From the POV of the Bot 
 stop at positionNum + 3
 */
-const int TxPin = 8;
+const int LCD = 10;
 #include <Servo.h>
 #include <SoftwareSerial.h> 
+
 
 #define IRR 4
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
 #define Rx 11 // DOUT to pin 11 
-#define Tx 10 // DIN to pin 10
+#define Tx 8 // DIN to pin 8 moved from 10
 
 SoftwareSerial Xbee (Rx, Tx); 
-SoftwareSerial mySerial = SoftwareSerial(255, TxPin);
+SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
 Servo leftServo; //define servos
 Servo rightServo;
@@ -24,42 +25,132 @@ int bulb = 1;
 int calibLight = 80;
 boolean allBlackHit = false;
 int counter = 0;
+int led = 9;
 
 void setup() 
 {
   Move(0,0);
-  Serial.begin(9600);
   mySerial.begin(9600);
   
-  tone(9, 3000, 1000);                       // Play tone for 1 second
-  delay(1000);
-  
   delay(100);
-  mySerial.write(12);                 // Clear             
-  mySerial.write(17);                 // Turn backlight on
-  delay(5);                           // Required delay
-  mySerial.print("Yellow");  // First line
-  mySerial.write(13);                 // Form feed
-  mySerial.print("");   // Second line
-  mySerial.write(212);                // Quarter note
-  mySerial.write(220);                // A tone
+  mySerial.write(12);                 // Clear
+  delay(5);
+  mySerial.print("Yellow");           // First line
+  delay(500);
   
   
-  leftServo.attach(13); //attach servos
+  leftServo.attach(13);               //attach servos
   rightServo.attach(12);
-  //leftServo.write(90); //set to no movement
-  //rightServo.write(90);
+  rightServo.writeMicroseconds(1500);
+  leftServo.writeMicroseconds(1500);
   pinMode(7, INPUT);
-  pinMode(TxPin, OUTPUT);
-  digitalWrite(TxPin, HIGH);
+  pinMode(LCD, OUTPUT);
+  digitalWrite(LCD, HIGH);
+  pinMode(led, OUTPUT);
   delay(1000);
+}
+
+void loop() 
+{
+  int irl = RCtime(IRL) > calibDiff;
+  int irlc = RCtime(IRLC) > calibDiff;
+  int irrc = RCtime(IRRC) > calibDiff;
+  int irr = RCtime(IRR) > calibDiff;
+  
+  if(!irl || !irlc || !irrc || !irr)
+  {
+    allBlackHit = false;
+  }
+  //FINISH LINE REACHED
+//  if(counter == 4)
+//  {
+//    Move(0,0);
+//    mySerial.write(12);                 // Clear             
+//    mySerial.print("Position Reached");           // First line
+//    mySerial.write(13);                 // Form feed
+//    mySerial.print(positionNum);                 // Second line
+//    
+//    for(int i=0; i<positionNum; i++)
+//    {
+//      digitalWrite(led, HIGH);
+//      delay(250);
+//      digitalWrite(led, LOW);
+//      delay(250);
+//    }
+//    delay(10000000);
+//  }
+  if(counter == ((6-positionNum) + 4))
+  {
+    Move(0,0);
+    delay(5);                           // Required delay
+    mySerial.print(positionNum);                 // Second line
+    for(int i=0; i<positionNum; i++)
+    {
+      digitalWrite(led, HIGH);
+      delay(250);
+      digitalWrite(led, LOW);
+      delay(250);
+    }
+    delay(10000000);
+  }
+  else if (!allBlackHit && irl && irlc && irrc && irr) // All Black - hash mark
+  {
+    allBlackHit = true;
+    positionNum = positionNum + (bulb)*(int) bulbOn();
+    counter++;
+    bulb = bulb*2;
+    if (bulb > 4)
+    {
+      bulb = 0;
+    }
+    //Serial.print((int) bulbOn());
+ 
+    if(bulbOn())
+    {
+      mySerial.write(12);                 // Clear
+      mySerial.print(positionNum);   // Second line
+    }
+    else if(!bulbOn())
+    {
+      mySerial.write(12);                 // Clear             
+      mySerial.print(positionNum);   // Second line
+    }
+    Move(0,0);
+    delay(10);
+    Move(1,1);
+    delay(400);
+  }
+  else if(!irlc && !irrc && !irl && !irr) // All White
+  { 
+    for(int i = 0; i < 2; i++) //let i go to 3 on plug power 2 on batt
+    {
+    Move(0, 1);
+    delay(1);
+    }
+    for(int i = 0; i < 5; i++)
+    {
+    Move(1, 1);
+    delay(1);
+    }
+  }
+  else if (irlc && irrc) // Insides Black 
+  { 
+    Move(1,1);
+  } 
+  else if (!irr && !irrc) // Two Right Sides white 
+  {
+    Move(0,1);
+  } 
+  else if (!irl && !irlc) // Two Left Sides white
+  {
+    Move(1,0);
+  }
 }
 
 void Move(float left, float right) 
 {
  float leftSpeed = mapfloat(left,0,1,1500,1700);
  float rightSpeed = mapfloat(right,0,1,1500,1350);
- Serial.println(leftSpeed);
  
  leftServo.writeMicroseconds((int) leftSpeed);
  rightServo.writeMicroseconds((int) rightSpeed);
@@ -93,84 +184,4 @@ long RCtime(int sensPin){
 boolean bulbOn()
 {
   return (abs(analogRead(A0) - analogRead(A1)) > calibLight);
-}
-
-void loop() 
-{
-  //Serial.println(RCtime(IRR));
-  //Serial.print("Light Read = ");
-  //Serial.print(analogRead(A0));
-  //Serial.print("Ambient Read = ");
-  //Serial.print(analogRead(A1));
-  int irl = RCtime(IRL) > calibDiff;
-  int irlc = RCtime(IRLC) > calibDiff;
-  int irrc = RCtime(IRRC) > calibDiff;
-  int irr = RCtime(IRR) > calibDiff;
-  
-  if(!irl || !irlc || !irrc || !irr)
-  {
-    allBlackHit = false;
-  }
-  
-  if(counter > (positionNum + 3))
-  {
-    Move(0,0);
-    delay(10000000);
-  }
-  
-  if (!allBlackHit && irl && irlc && irrc && irr) // All Black - hash mark
-  {
-    allBlackHit = true;
-    positionNum = positionNum + (bulb)*(int) bulbOn();
-    counter++;
-    bulb = bulb*2;
-    if (bulb > 4)
-    {
-      bulb = 0;
-    }
-    Serial.print((int) bulbOn());
- 
-    if(bulbOn())
-    {
-      mySerial.write(12);                 // Clear             
-      mySerial.write(17);                 // Turn backlight on
-      delay(5);                           // Required delay
-      mySerial.print("Bulb Read: ON");  // First line
-      mySerial.write(13);                 // Form feed
-      mySerial.print(positionNum);   // Second line
-      mySerial.write(212);                // Quarter note
-      mySerial.write(220);                // A tone
-    }
-    else if(!bulbOn())
-    {
-      mySerial.write(12);                 // Clear             
-      mySerial.write(17);                 // Turn backlight on
-      delay(5);                           // Required delay
-      mySerial.print("Bulb Read: OFF");  // First line
-      mySerial.write(13);                 // Form feed
-      mySerial.print(positionNum);   // Second line
-      mySerial.write(212);                // Quarter note
-      mySerial.write(220);                // A tone
-    }
-    Move(0,0);
-    delay(10);
-    Move(1,1);
-    delay(400);
-  }
-  else if(!irlc && !irrc && !irl & !irr) // All White
-  { 
-    Move(1, 1);
-  }
-  else if (irlc && irrc) // Insides Black 
-  { 
-    Move(1,1);
-  } 
-  else if (!irr && !irrc) // Two Right Sides white 
-  {
-    Move(0,1);
-  } 
-  else if (!irl && !irlc) // Two Left Sides white
-  {
-    Move(1,0);
-  }
 }
