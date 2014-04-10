@@ -39,9 +39,9 @@ boolean areWeSensing = true;
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-boolean orderDeclared[] = {false, false, false};
-boolean orderMoving[] =  {false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false};
+boolean orderDeclared[] = {false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -51,9 +51,9 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 3;
+int numBots = 4;
 
-SoftwareSerial mySerial = SoftwareSerial(255, LCD);
+//SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
 void setup() 
 {
@@ -61,18 +61,19 @@ void setup()
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   Move(0,0);
-  pinMode(13,OUTPUT);
+  //pinMode(13,OUTPUT);
+  pinMode(9, OUTPUT);
    // XBee setup: 
    Xbee.begin(9600);
    delay(3000);
   
-  // Init LCD Serial
-  pinMode(LCD, OUTPUT);
-  digitalWrite(LCD, HIGH);
-  mySerial.begin(9600);
-  delay(100);
-  mySerial.write(12);                 // Clear                        
-  delay(5);                           // Required delay
+//  // Init LCD Serial
+//  pinMode(LCD, OUTPUT);
+//  digitalWrite(LCD, HIGH);
+//  mySerial.begin(9600);
+//  delay(100);
+//  mySerial.write(12);                 // Clear                        
+//  delay(5);                           // Required delay
 }
 
 
@@ -89,13 +90,13 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
 }
 
 void displayLCD(String text) {
-  mySerial.print(text);
+  //mySerial.print(text);
 }
 void displayNewline() {
-  mySerial.write(13);
+  //mySerial.write(13);
 }
 void displayClear() {
- mySerial.write(12); 
+ //mySerial.write(12); 
 }
 
 long RCtime(int sensPin){
@@ -213,8 +214,12 @@ void loop() {
   displayClear();
   displayLCD("Found number: "+String(myNumber,DEC));
   Move(0,0);
+  if (myNumber < 1) {
+    myNumber = -1;
+  }
+  foundOrder(-1);
   myNumber = doIGo();
-  sDelay(5000);
+  //sDelay(5000);
   lineFollow(4,-1);
   displayClear();
   displayLCD("Turning a bit");
