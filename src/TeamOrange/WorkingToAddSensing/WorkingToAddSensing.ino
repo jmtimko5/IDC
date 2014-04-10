@@ -4,7 +4,7 @@ Digital Inputs 4-7, Right to Left
 From the POV of the Bot
 */
 
-const int TxPin = 1;
+const int TxPin = 10;
 
 #define IRR 4
 #define IRRC 5
@@ -155,11 +155,11 @@ long RCtimeColour(int pin)                         // ..returns decay time
 long redRC()
 {
   analogWrite(RedLED, 255);                  //Turn on red LED
-  delay(1000);
+  delay(500);
   long redrc=RCtimeColour(PT);               //take rc time with red on
-  delay(1000);
+  delay(500);
   analogWrite(RedLED, 0);
-  delay(1000);
+  delay(500);
   
   return(redrc);
 }
@@ -167,11 +167,11 @@ long redRC()
 long blueRC()
 {
   analogWrite(BlueLED, 255);                //turn on blue LED
-  delay(1000);
+  delay(500);
   long bluerc=RCtimeColour(PT);             //take rc time with blue on
-  delay(1000);
+  delay(500);
   analogWrite(BlueLED, 0);
-  delay(1000);
+  delay(500);
   
   return(bluerc);
 }
@@ -179,11 +179,11 @@ long blueRC()
 long greenRC()
 {
   analogWrite(GreenLED, 255);              //turn on green LED
-  delay(1000);
+  delay(500);
   long greenrc=RCtimeColour(PT);           //take rc time with green on
-  delay(1000);
+  delay(500);
   analogWrite(GreenLED, 0);
-  delay(1000);
+  delay(500);
   
   return(greenrc);
 }
