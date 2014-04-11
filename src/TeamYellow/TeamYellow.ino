@@ -6,6 +6,7 @@ const int LCD = 10;
 #include <Servo.h>
 #include <SoftwareSerial.h> 
 
+boolean battery = false;
 
 #define IRR 4
 #define IRRC 5
@@ -26,6 +27,16 @@ int calibLight = 80;
 boolean allBlackHit = false;
 int counter = 0;
 int led = 9;
+
+int whiteCount = 0;
+int blackCount = 0;
+int whiteLastTime = 0;
+int blackLastTime = 0;
+int whiteOverrideTime = 600;
+int blackOverrideTime = 250;
+int allWhiteCount = 0;
+int allBlackCount = 0;
+
 
 void setup() 
 {
@@ -57,93 +68,79 @@ void loop()
   int irrc = RCtime(IRRC) > calibDiff;
   int irr = RCtime(IRR) > calibDiff;
   
-  if(!irl || !irlc || !irrc || !irr)
+  lineFollow(-1, 1);
+  positionNum = positionNum + (bulb)*(int) bulbOn();
+  bulb = bulb*2;
+  lineFollow(-1, 1);
+  //take reading
+  lineFollow(-1, 1);
+  //take reading
+  positionNum = positionNum + (bulb)*(int) bulbOn();
+  bulb = bulb*2;
+ 
+  lineFollow(-1, 1);
+  counter++;
+  positionNum = positionNum + (bulb)*(int) bulbOn();
+  
+  lineFollow(4, -1);
+  for (int i=0;i<400;i++) 
   {
-    allBlackHit = false;
+      Move(.1,3);
+      delay(1); 
   }
-  //FINISH LINE REACHED
-//  if(counter == 4)
-//  {
-//    Move(0,0);
-//    mySerial.write(12);                 // Clear             
-//    mySerial.print("Position Reached");           // First line
-//    mySerial.write(13);                 // Form feed
-//    mySerial.print(positionNum);                 // Second line
-//    
-//    for(int i=0; i<positionNum; i++)
-//    {
-//      digitalWrite(led, HIGH);
-//      delay(250);
-//      digitalWrite(led, LOW);
-//      delay(250);
-//    }
-//    delay(10000000);
-//  }
-  if(counter == ((6-positionNum) + 4))
-  {
+  
+  lineFollow(-1,(5-positionNum));
+  
     Move(0,0);
-    delay(5);                           // Required delay
-    mySerial.print(positionNum);                 // Second line
     for(int i=0; i<positionNum; i++)
     {
       digitalWrite(led, HIGH);
-      delay(250);
+      delay(1000);
       digitalWrite(led, LOW);
-      delay(250);
+      delay(1000);
     }
     delay(10000000);
-  }
-  else if (!allBlackHit && irl && irlc && irrc && irr) // All Black - hash mark
-  {
-    allBlackHit = true;
-    positionNum = positionNum + (bulb)*(int) bulbOn();
-    counter++;
-    bulb = bulb*2;
-    if (bulb > 4)
-    {
-      bulb = 0;
+
+}
+
+
+// Follow lines until we've reached the specified number of stops. -1 to ignore a kind of stop
+void lineFollow(int whiteStops, int blackStops) {
+  blackCount = 0;
+  whiteCount = 0;
+  while (((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) {
+    int irl = RCtime(IRL) > calibDiff;
+    int irlc = RCtime(IRLC) > calibDiff;
+    int irrc = RCtime(IRRC) > calibDiff;
+    int irr = RCtime(IRR) > calibDiff;  
+    //Serial.println(String(whiteCount)+" "+String(blackCount));
+    //displayClear();
+    //displayLCD(String(whiteCount));
+    if (irl && irlc && irrc && irr) {
+      // All Black
+      onBlack();
+      Move(1,1);
+    } 
+      else if (!irl && !irlc && !irrc && !irr) {
+      //All White
+      onWhite();
+      Move(1,1);
     }
-    //Serial.print((int) bulbOn());
- 
-    if(bulbOn())
-    {
-      mySerial.write(12);                 // Clear
-      mySerial.print(positionNum);   // Second line
+      else if (!irl && irlc && irrc && !irr) {
+      // Insides Black
+      resetColorCount();
+      Move(1,1);
+    } 
+      else if (!irrc && !irr) {
+      // Two Right Sides white
+      Move(0,1);
+      resetColorCount();
+    } 
+     else if (!irl && !irlc) {
+      // Two Left Sides white
+      Move(1,0);
+      resetColorCount();
     }
-    else if(!bulbOn())
-    {
-      mySerial.write(12);                 // Clear             
-      mySerial.print(positionNum);   // Second line
-    }
-    Move(0,0);
-    delay(10);
-    Move(1,1);
-    delay(400);
-  }
-  else if(!irlc && !irrc && !irl && !irr) // All White
-  { 
-    for(int i = 0; i < 2; i++) //let i go to 3 on plug power 2 on batt
-    {
-    Move(0, 1);
-    delay(1);
-    }
-    for(int i = 0; i < 5; i++)
-    {
-    Move(1, 1);
-    delay(1);
-    }
-  }
-  else if (irlc && irrc) // Insides Black 
-  { 
-    Move(1,1);
-  } 
-  else if (!irr && !irrc) // Two Right Sides white 
-  {
-    Move(0,1);
-  } 
-  else if (!irl && !irlc) // Two Left Sides white
-  {
-    Move(1,0);
   }
 }
 
@@ -180,6 +177,33 @@ long RCtime(int sensPin){
 
    return result;                   // report results   
 } 
+
+void resetColorCount() {
+  allWhiteCount = 0;
+  allBlackCount = 0;
+}
+
+void onWhite() {
+  int i;
+  allWhiteCount++;
+  if (allWhiteCount > 5) {
+    if ((millis() - whiteLastTime) > whiteOverrideTime) {
+      whiteCount++;
+      whiteLastTime = millis();
+    }
+  }
+}
+
+void onBlack() {
+  int i;
+  allBlackCount++;
+  if (allBlackCount > 3) {
+    if ((millis() - blackLastTime) > blackOverrideTime) {
+      blackCount++;
+      blackLastTime = millis();
+    }
+  }
+}
 
 boolean bulbOn()
 {
