@@ -33,6 +33,7 @@ int c5 = 1000;
 int report = 0; 
 int black = 0;
 int tick = 0; 
+int des = 0; 
 void setup() 
 {
   Serial.begin(9600);
@@ -43,7 +44,7 @@ void setup()
   rightServo.write(90);
   pinMode(LCD, OUTPUT);
   digitalWrite(LCD, HIGH);
-  mySerial.write(12);                 // Clear             
+  mySerial.write(12);                 // Clear  
   mySerial.write(17);
 }
 
@@ -103,17 +104,18 @@ int PegValue(int counting){
   return Peg;
 }
 void onBlack(){
-  if(black==0 && tick!=report){
-    
+  des = 6-report; 
+  if(black==0 && tick!=des){
     Move(0,0);
     tick++;
-    delay(1500);
+    delay(500);
     black = 1; 
   }
+
   else if (black == 1){
     Move(1,1);
   }
-  else if(tick == report){
+  else if(tick == des){
   Move(0,0);
   }
 }
@@ -165,13 +167,14 @@ void loop() {
     if (accu==0){
       contact--;
       report = PegValue(counter); 
-      Serial.println(report);
-      Serial.println(counter);
-      mySerial.print((String)report);  // First line
-      mySerial.write(13);                 // Form feed
-      mySerial.print((String)counter);   // Second line
+      //Serial.println(report);
+      //Serial.println(counter);
+      mySerial.print(report);  // First line
+      //mySerial.write(13);                 // Form feed
+      //mySerial.print(counter);   // Second line
       
     }  
     
   }
+  //mySerial.print((String)report);
 }
