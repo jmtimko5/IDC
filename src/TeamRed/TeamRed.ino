@@ -33,7 +33,7 @@ SoftwareSerial Xbee (Rx, Tx);
 //COMMUNICATION
 boolean orderDeclared[] = {false, false, false, false};
 boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, falsem9};
+boolean orderMovingLastChecked[] = {false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
