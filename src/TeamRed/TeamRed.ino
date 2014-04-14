@@ -54,7 +54,7 @@ boolean senseTrigger = false;
 boolean verbose = false;
 boolean check = true;
 boolean check2 = true;
-
+boolean check3 = true;
 
 int lineCount = 0;
 int vals[5] = {0, 0, 0, 0, 0};
@@ -172,8 +172,9 @@ void loop() {
      //wait for change! change to false to go.
      check2 = false;
    
-   } else if (lineCount == 6 + 1) {
+   } else if (lineCount == 6 + 1 && check3) {
        sendMoving();
+       check3 = false;
    } else if (lineCount == 6 + (6 - val)) {
      //stop! final area!
      Move(0,0);
