@@ -40,7 +40,9 @@ int bulb = 1;
 int calibLight = 80;
 boolean allBlackHit = false;
 int counter = 0;
-int led = 9;
+int ledred = 2;
+int ledyellow = 9;
+int ledgreen = 10;
 
 int whiteCount = 0;
 int blackCount = 0;
@@ -77,7 +79,13 @@ void setup()
   pinMode(7, INPUT);
   //pinMode(LCD, OUTPUT);
  // digitalWrite(LCD, HIGH);
-  pinMode(led, OUTPUT);
+  pinMode(ledred, OUTPUT);
+  pinMode(ledyellow, OUTPUT);
+  pinMode(ledgreen, OUTPUT);
+  digitalWrite(ledred, LOW);
+  digitalWrite(ledyellow, LOW);
+  digitalWrite(ledgreen, LOW);
+
   sDelay(1000);
 }
 
@@ -98,6 +106,7 @@ void loop()
   lineFollow(-1, 1);
   positionNum = positionNum + (bulb)*(int) bulbOn();
   lineFollow(-1, 1);
+  Bled(positionNum);
   Move(0,0);
   sDelay(500);
   foundOrder(positionNum);
@@ -197,6 +206,36 @@ void lineFollow(int whiteStops, int blackStops) {
   }
 }
 
+void Bled(int positionNum) {
+  if(positionNum == 1){
+     digitalWrite(ledred, HIGH);
+     digitalWrite(ledyellow, LOW);
+     digitalWrite(ledgreen, LOW);
+  }
+  else if(positionNum == 2){
+      digitalWrite(ledred, LOW);
+     digitalWrite(ledyellow, HIGH);
+     digitalWrite(ledgreen, LOW);
+  }
+  else if(positionNum == 3){
+      digitalWrite(ledred, HIGH);
+     digitalWrite(ledyellow, HIGH);
+     digitalWrite(ledgreen, LOW);
+  }
+  else if(positionNum == 4){
+      digitalWrite(ledred, LOW);
+     digitalWrite(ledyellow, LOW);
+     digitalWrite(ledgreen, HIGH);
+  }
+  else if(positionNum == 5){
+      digitalWrite(ledred, HIGH);
+     digitalWrite(ledyellow, LOW);
+     digitalWrite(ledgreen, HIGH);
+  }
+  }
+  
+  
+  
 void Move(float left, float right) 
 {
  float leftSpeed = mapfloat(left,0,1,1500,1700);
@@ -571,4 +610,5 @@ void debug(String text, int number) {
    Serial.println(message);
  }
 } 
+
 
