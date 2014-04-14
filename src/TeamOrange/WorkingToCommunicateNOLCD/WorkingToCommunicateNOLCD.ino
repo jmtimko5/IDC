@@ -44,8 +44,6 @@ void setup()
 {
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
-  leftServo.write(90); //set to no movement
-  rightServo.write(90);
   
   pinMode(10,OUTPUT);
 
@@ -82,12 +80,15 @@ void loop()
          delay(100);
        }
        hashCount++;                  //write integer value to LCD and increase hashCount
+       Move(-1,-1);
+       sDelay(200);
+       Move(0,0);
        int OrderNum=doIGo();
      } else
      {
-       if ((5-CODE)>0)               //Count down hashes to stop at correct place
+       if ((6-CODE)>0)               //Count down hashes to stop at correct place
        {
-         if (hashCount==4){
+         if (hashCount==5){
            sendMoving();
            CODE++;
          }
@@ -96,10 +97,6 @@ void loop()
        } 
        else
        {
-         rightServo.writeMicroseconds(1700);
-         leftServo.writeMicroseconds(1350);
-         delay(100);
-         Move(0,0);
          while(0==0){                //when at correct place enter infinite loop
        digitalWrite(9, HIGH);
        sDelay(1000);
@@ -129,25 +126,16 @@ void loop()
 
 }
 
-void Move(int left, int right)
-{
-  sDelay(0);
-  if (left ==1)
-  {
-    leftServo.writeMicroseconds(1700);
-  }
-  else if (left==0)
-  {
-    leftServo.writeMicroseconds(1500);
-  }
-  if (right==1)
-  {
-    rightServo.writeMicroseconds(1350);
-  }
-  else if (right==0)
-  {
-    rightServo.writeMicroseconds(1500);
-  }
+void Move(float left, float right) {
+ sDelay(0);
+ float leftSpeed = mapfloat(left,0,1,1500,1700);
+ float rightSpeed = mapfloat(right,0,1,1500,1350);
+ 
+ leftServo.writeMicroseconds((int) leftSpeed);
+ rightServo.writeMicroseconds((int) rightSpeed);
+}
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 long RCtime(int sensPin){
