@@ -18,9 +18,9 @@ boolean battery = false;
 SoftwareSerial Xbee (Rx, Tx); 
 //SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
-boolean orderDeclared[] = {false, false, false};
-boolean orderMoving[] =  {false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false};
+boolean orderDeclared[] = {false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -30,7 +30,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 3;
+int numBots = 4;
 
 Servo leftServo; //define servos
 Servo rightServo;
@@ -97,35 +97,57 @@ void loop()
   positionNum = positionNum + (bulb)*(int) bulbOn();
   bulb = bulb*2;
   lineFollow(-1, 1);
-  counter++;
   positionNum = positionNum + (bulb)*(int) bulbOn();
+  lineFollow(-1, 1);
+  Move(0,0);
+  sDelay(500);
   foundOrder(positionNum);
-    int order = doIGo();
-    sDelay(10000);
+  for(int i=0; i==positionNum; i++)
+    {
+      digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      delay(1000);
+    }
+   int order = doIGo();
+    sDelay(1000);
   lineFollow(4, -1);
   for (int i=0;i<400;i++) 
   { 
-    sendMoving();
       Move(.1,3);
       delay(1); 
   }
-  sDelay(2000);
+   sendMoving();
+   Move(0,0);
+   sDelay(50);
+if (positionNum != 1){
+   lineFollow(-1,(6-positionNum));
+     Move(0,0);
+
   while(1) {
-    debug("I'm now finishing with Order: ",order);
-    sDelay(1000);
+//    debug("I'm now finishing with Order: ",order);
   }
 
-  lineFollow(-1,(6-positionNum));
-  
-    Move(0,0);
-    for(int i=0; i=positionNum; i++)
-    {
-      digitalWrite(led, HIGH);
-      sDelay(1000);
-      digitalWrite(led, LOW);
-      sDelay(1000);
-    }
-    sDelay(10000000);
+    sDelay(10000000);}
+   if (positionNum == 1){
+   lineFollow(-1,1);
+   sendMoving();
+   sDelay(500);
+   lineFollow(-1,1);
+   sDelay(500);
+   lineFollow(-1,1);
+   sDelay(500);
+   lineFollow(-1,1);
+   sDelay(500);
+   lineFollow(-1,1);
+   Move(0,0);
+
+  while(1) {
+//    debug("I'm now finishing with Order: ",order);
+  }
+
+    sDelay(10000000);}
+
 
 }
 
@@ -154,7 +176,7 @@ void lineFollow(int whiteStops, int blackStops) {
     }
       else if (!irl && irlc && irrc && !irr) {
       // Insides Black
-      resetColorCount();
+      //resetColorCount();
       Move(1,1);
     } 
       else if (!irrc && !irr) {
@@ -545,5 +567,4 @@ void debug(String text, int number) {
    Serial.println(message);
  }
 } 
-
 
