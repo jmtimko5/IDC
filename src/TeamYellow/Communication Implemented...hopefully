@@ -73,8 +73,7 @@ void setup()
   
   leftServo.attach(13);               //attach servos
   rightServo.attach(12);
-  rightServo.writeMicroseconds(1500);
-  leftServo.writeMicroseconds(1500);
+  Move(0,0);
   pinMode(7, INPUT);
   //pinMode(LCD, OUTPUT);
  // digitalWrite(LCD, HIGH);
@@ -102,28 +101,32 @@ void loop()
   Move(0,0);
   sDelay(500);
   foundOrder(positionNum);
-  for(int i=0; i==positionNum; i++)
-    {
-      digitalWrite(led, HIGH);
-      delay(1000);
-      digitalWrite(led, LOW);
-      delay(1000);
-    }
+  //for(int i=0; i==positionNum; i++)
+    //{
+     // digitalWrite(led, HIGH);
+      //sDelay(1000);
+      //digitalWrite(led, LOW);
+      //sDelay(1000);
+   // }
+   leftServo.detach();               //attach servos
+   rightServo.detach();
    int order = doIGo();
+   leftServo.attach(13);               //attach servos
+   rightServo.attach(12);
     sDelay(1000);
   lineFollow(4, -1);
-  for (int i=0;i<400;i++) 
-  { 
-      Move(.1,3);
+  for(int i=0; i<400;i++)
+  {   Move(.1,3);
       delay(1); 
   }
-   sendMoving();
    Move(0,0);
    sDelay(50);
-if (positionNum != 1){
+   if (positionNum != 1){
    lineFollow(-1,(6-positionNum));
+    sendMoving();
      Move(0,0);
-
+    leftServo.detach();               //attach servos
+    rightServo.detach();
   while(1) {
 //    debug("I'm now finishing with Order: ",order);
   }
@@ -147,7 +150,8 @@ if (positionNum != 1){
   }
 
     sDelay(10000000);}
-
+       leftServo.detach();               //attach servos
+   rightServo.detach();
 
 }
 
