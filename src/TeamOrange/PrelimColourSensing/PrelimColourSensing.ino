@@ -10,6 +10,7 @@ Hashing out method to determine integer from 1-5 from RCtime
 void setup()
 {
   Serial.begin(9600);
+  pinMode(10,OUTPUT);
 }
 
 long RCtime(int pin)                         // ..returns decay time
@@ -80,12 +81,33 @@ int getInteger()
    if (blueRC()<4000)
   {
     Serial.println("White");
+    for (int i=1; i>0; i--)
+    {
+      digitalWrite(10,HIGH);
+      delay(500);
+      digitalWrite(10,LOW);
+      delay(100);
+    }
     return 1;
   } else if (redRC()>25000) {
     Serial.println("Green");
+    for (int i=3; i>0; i--)
+    {
+      digitalWrite(10,HIGH);
+      delay(500);
+      digitalWrite(10,LOW);
+      delay(100);
+    }
     return 3;
   } else if (greenRC()<15000) {
     Serial.println("Yellow");
+    for (int i=2; i>0; i--)
+    {
+      digitalWrite(10,HIGH);
+      delay(500);
+      digitalWrite(10,LOW);
+      delay(100);
+    }
     return 2;
   } else {
     Serial.println("Red");
