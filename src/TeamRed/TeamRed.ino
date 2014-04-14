@@ -31,9 +31,9 @@ boolean battery = true;
 SoftwareSerial Xbee (Rx, Tx);
 
 //COMMUNICATION
-boolean orderDeclared[] = {false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false};
+boolean orderDeclared[] = {false, false, false};
+boolean orderMoving[] =  {false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -43,7 +43,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 4;
+int numBots = 3;
 
 //CALIBRATION
 int calibDiff = 5;

@@ -1,34 +1,32 @@
 /*
-Line Following and Colour sensing code, working to add communication
-Digital Inputs 4-7, Right to Left
+Line Following Base Code with Four Sensors
+Digital Inputs should be 4-7, Right to Left
 From the POV of the Bot
+//pin 9 broken
+
+//TODO:
+//-averaging values
+//communication and when to go
 */
+
+#define din 3
+#define dout 2
 
 #define IRR 4
 #define IRRC 5
 #define IRLC 6
 #define IRL 7
-#define PT 2
-#define RedLED A0
-#define BlueLED A2
-#define GreenLED A3
-#define Rx 11
-#define Tx 8
+#define led 10
 #include <Servo.h>
 #include <SoftwareSerial.h>
-#include <Math.h>
+
+#define Rx 11 // DOUT to pin 11 
+#define Tx 12 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-
-Servo leftServo;
-Servo rightServo; //define servos
-int calibDiff=50;
-int CODE=0;
-int hashCount=0;
-
-boolean orderDeclared[] = {false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false};
+boolean orderDeclared[] = {false, false, false};
+boolean orderMoving[] =  {false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -38,101 +36,58 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 4;
+int numBots = 3;
+
+
+SoftwareSerial mySerial = SoftwareSerial(255, 11);
+
+Servo leftServo; //define servos
+Servo rightServo;
+
+boolean battery = true; 
+
+//CALIBRATION
+int calibDiff = 5;
+int senseDiff = 250;
+int timeout = 5000; //(ticks)
+
+boolean senseTrigger = false;
+boolean verbose = false;
+boolean check = true;
+boolean check2 = true;
+
+
+int lineCount = 0;
+int vals[5] = {0, 0, 0, 0, 0};
+int val = 0; //final integer value!
+
 
 void setup() 
 {
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
+  leftServo.writeMicroseconds(1500); //set to no movement
+  rightServo.writeMicroseconds(1500);
   
-  pinMode(10,OUTPUT);
-
+   // XBee setup: 
+ Xbee.begin(9600);
+ delay(3000);
+  
+  //init led
+  pinMode(led, OUTPUT);
+  digitalWrite(led, HIGH);
+  delay(500);
+  digitalWrite(led, LOW);
+ 
+  //lcd shiz
+  //pinMode(11, OUTPUT);
+  //digitalWrite(11, HIGH);
+  mySerial.begin(9600);
+  delay(500);                        // Wait 3 seconds
+  //mySerial.write(18);                 // Turn backlight off
+  
   Serial.begin(9600);
-  Xbee.begin(9600);
-  delay(3000);
-}
-
-void loop() 
-{
-  //Serial.println(RCtime(IRR));
-  int irl=RCtime(IRL) > calibDiff;        //check whether each QTI sees white or black
-  int irlc=RCtime(IRLC) > calibDiff;
-  int irrc=RCtime(IRRC) > calibDiff;
-  int irr=RCtime(IRR) > calibDiff;
-  
-  if (irl && irlc && irrc && irr) {
-     // All Black
-     Move(0,0);
-     sDelay(500);               
-     if (hashCount<3)
-     {                //if still in colour measuring part 
-     int dummy=getInteger();
-     for (int i=dummy; i>0; i--)
-       {
-         digitalWrite(10, HIGH);
-         sDelay(500);
-         digitalWrite(10, LOW);
-         sDelay(100);
-       }
-     CODE=CODE+dummy;         //add measured value to CODE
-     Serial.println(String(CODE)+" "+String(dummy));
-     hashCount++;                    //increase hashCount
-     }
-     else if(hashCount==3) {           //if at the long hash   
-       foundOrder(CODE);
-       Serial.println(CODE);
-       hashCount++;                  //write integer value to LCD and increase hashCount
-       Move(-1,-1);
-       sDelay(200);
-       Move(0,0);
-       for (int i=CODE; i>0; i--) {
-         digitalWrite(10, HIGH);
-         sDelay(500);
-         digitalWrite(10, LOW);
-         sDelay(100);
-       }
-       CODE=doIGo();
-     } else if (hashCount==4) {
-       hashCount++;
-     }
-     else {
-       if ((5-CODE)>0)  {             //Count down hashes to stop at correct place
-         if (hashCount==5) {
-           sendMoving();
-           Serial.println("im sending moving");
-           CODE++;
-         } else {
-           Serial.println("im not");
-           CODE++;
-         }
-       } else {
-         while(1) {                //when at correct place enter infinite loop
-           digitalWrite(9, HIGH);
-           sDelay(1000);
-           digitalWrite(9, LOW);
-         }
-       }
-     }
-     Move(1,1);
-     sDelay(250); //so that it doesn't start measuring again when it's still on the black
-  }
-  else if (!irl && !irlc && !irrc && !irr) {
-  //All white
-  Move(1,1);
-  }
-  else if (!irl && irlc && irrc && !irr) {
-  //insides black
-  Move(1,1);
-  }
-  else if (!irrc && !irr) {
-  // two right sides white
-  Move(0,1);
-  }
-  else if (!irl && !irlc) {
-  // two left sides white
-  Move(1,0);
-  }
-
+  sDelay(1000);
 }
 
 void Move(float left, float right) {
@@ -151,85 +106,204 @@ long RCtime(int sensPin){
    long result = 0;
    pinMode(sensPin, OUTPUT);       // make pin OUTPUT
    digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
-   delay(1);                       // wait a  ms to make sure cap is discharged
+   (1);                       // wait a  ms to make sure cap is discharged
 
    pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
    digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
-   while(digitalRead(sensPin)){    // wait for pin to go low
+   while(digitalRead(sensPin) && result < timeout){    // wait for pin to go low
       result++;
    }
 
-   return result;                   // report results   
+   return result;                   // report results
 } 
 
-long RCtimeColour(int pin)                         // ..returns decay time
-{                                            
-  pinMode(pin, OUTPUT);                      // Charge capacitor
-  digitalWrite(pin, HIGH);                   // ..by setting pin ouput-high
-  delay(10);                                 // ..for 10 ms
-  pinMode(pin, INPUT);                       // Set pin to input
-  digitalWrite(pin, LOW);                    // ..with no pullup
-  long time  = micros();                     // Mark the time
-  while(digitalRead(pin));                   // Wait for voltage < threshold
- 
-  time = micros() - time;                    // Calculate decay time
- 
-  pinMode(pin, OUTPUT);                      // Discharge capacitor
-  digitalWrite(pin, LOW);                    // ...by setting pin output-low
- 
-  return time;                               // Return decay time
-}
-
-long redRC()
-{
-  analogWrite(RedLED, 255);                  //Turn on red LED
-  delay(250);
-  long redrc=RCtimeColour(PT);               //take rc time with red on
-  delay(250);
-  analogWrite(RedLED, 0);
-  delay(250);
+void loop() {
+  //mySerial.write(12); //clear
+  //mySerial.print("Moving...");
   
-  return(redrc);
-}
-
-long blueRC()
-{
-  analogWrite(BlueLED, 255);                //turn on blue LED
-  delay(250);
-  long bluerc=RCtimeColour(PT);             //take rc time with blue on
-  delay(250);
-  analogWrite(BlueLED, 0);
-  delay(250);
+  Serial.println(RCtime(8));
   
-  return(bluerc);
-}
+  int irl = RCtime(IRL) > calibDiff;
+  int irlc = RCtime(IRLC) > calibDiff;
+  int irrc = RCtime(IRRC) > calibDiff;
+  int irr = RCtime(IRR) > calibDiff;
 
-long greenRC()
-{
-  analogWrite(GreenLED, 255);              //turn on green LED
-  delay(250);
-  long greenrc=RCtimeColour(PT);           //take rc time with green on
-  delay(250);
-  analogWrite(GreenLED, 0);
-  delay(250);
-  
-  return(greenrc);
-}
+  //check if done
+  if (lineCount == 5 && check) {
+     Serial.print("Done: ");
+      
+      
+      check = false;
+      
+   } else if (lineCount == 6 && check2) {
+     //stop! staging area!
+     Move(0,0);
+     Serial.print("Done: ");
+     Serial.print("{");
+     for (int i=0; i<5; i++) {
+        val += vals[i];
+        Serial.print(vals[i]);
+        Serial.print(" ");
+        //clear the recorded value
+     }
 
-long getInteger()                      //method to return the colour's integer based on predetermined rc time parameters
-{
-   if (blueRC()<5000)
-  {
-    return 1;
-  } else if (redRC()>25000) {
-    return 3;
-  } else if (greenRC()<18000) {
-    return 2;
-  } else {
-    return 0;
+      
+     displayVal();
+      
+     //wait for change! change to false to go.
+     check2 = false;
+     Move(-1,-1);
+     sDelay(200);
+     Move(0,0);
+     val = doIGo();
+        
+   } else if (lineCount == 7) {
+     sendMoving();
+   
+   } else if (lineCount == 6 + (6 - val)) {
+     //stop! final area!
+     Move(0,0);
+     //done...
+     
+   } else {
+    //hash mark code!
+    if (irl && irlc && irrc && irr) {
+      // All Black
+      Move(1,1);
+      if (verbose) {
+        Serial.println("All black");
+      }
+      
+         
+      //Marker: sense!
+      //Set sensing to true
+      senseTrigger = true;
+      if (lineCount < 5) {
+         Serial.print("senseTrigger true: ");
+        
+         //set the sensed result in the array at key linecount
+         //TODO: add value averaging
+         int value = sense();
+         Serial.print(value);
+         
+         if (value < senseDiff) {
+            //we sensed white!
+            vals[lineCount] = 1;
+             Serial.println(" = WHITE");
+         } else {
+            //we sensed black!
+            vals[lineCount] = 0;
+             Serial.println(" = BLACK");
+         }
+      }
+      
+      //debug sensor
+      //Serial.println(sense());
+    }  else if (!irl && !irlc && !irrc && !irr) {
+      //All White
+      Move(0,1);
+      delay((battery) ? 2 : 3);
+      Move(1,1);
+      delay((battery) ? 1 : 2);
+      if (verbose) {
+        Serial.println("All white");
+      }
+    }
+      else if (!irl && irlc && irrc && !irr) {
+      // Insides Black, Outsides White
+      Move(1,1);
+      
+      //Set sensing to false when back on the white
+      if (senseTrigger == true) {
+         senseTrigger = false;
+         if (vals[lineCount] == 0) {
+           digitalWrite(led, HIGH);
+           sDelay(101);
+           digitalWrite(led, LOW);
+         } else {
+           digitalWrite(led, HIGH);
+           sDelay(101);
+           digitalWrite(led, LOW);
+           sDelay(101);
+           digitalWrite(led, HIGH);
+           sDelay(101);
+           digitalWrite(led, LOW);
+         }
+         
+         
+         Serial.print("Done sensing: ");
+         lineCount++;
+         Serial.println(lineCount);
+         
+       }
+       if (verbose) {
+         Serial.println("Insides black, outsides white");
+       }
+       
+    } 
+      else if (!irrc && !irr) {
+      // Two Right Sides white
+      Move(0,1);
+      
+      if (verbose) {
+        Serial.println("Two right white");
+      }
+    } 
+     else if (!irl && !irlc) {
+      // Two Left Sides white
+      Move(1,0);
+      if (verbose) {
+        Serial.println("Two left white");
+      }
+    } 
+   
   }
 }
+ 
+int sense() {
+   return RCtime(8);// > calibDiff;
+}
 
+void displayVal() {
+  //while (true) { 
+    for (int i = 0; i < val; i++) {
+           digitalWrite(led, HIGH);
+           sDelay(200);
+           digitalWrite(led, LOW);
+           sDelay(200);
+      }
+      mySerial.print(val); 
+      sDelay(1000);
+  //}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Delay function that allows for constant communication
+// Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
   if (millis() - communicateTimer > 10) {
    communicate();
@@ -540,4 +614,3 @@ void debug(String text, int number) {
    Serial.println(message);
  }
 } 
-
