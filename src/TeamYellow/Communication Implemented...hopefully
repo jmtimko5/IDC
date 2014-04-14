@@ -101,8 +101,8 @@ void loop()
   positionNum = positionNum + (bulb)*(int) bulbOn();
   foundOrder(positionNum);
     int order = doIGo();
-  lineFollow(4, -1);
     sDelay(10000);
+  lineFollow(4, -1);
   for (int i=0;i<400;i++) 
   { 
     sendMoving();
