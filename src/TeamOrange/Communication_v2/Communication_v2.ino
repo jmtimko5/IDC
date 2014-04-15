@@ -32,7 +32,7 @@ boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
-boolean communication=true;
+boolean communicating=true;
  
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
@@ -86,16 +86,17 @@ void loop()
        flash(CODE);                  //flash final code value
        CODE=doIGo();                 //communicate with other robots to determine order
        sDelay(3200);
-       communication=false;
+       communicating=false;
      } else if (hashCount==4) {      //extra hash b/c it backs up a bit
        hashCount++;
      }
      else {
        if ((5-CODE)>0)  {             //Count down hashes to stop at correct place
          if (hashCount==5) {
-           communication=true;
+           communicating=true;
            sendMoving();
            Serial.println("im sending moving");
+           communicating=false;
            CODE++;
          } else {
            Serial.println("im not");
