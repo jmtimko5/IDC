@@ -183,11 +183,11 @@ long RCtimeColour(int pin)                         // ..returns decay time
 long redRC()
 {
   analogWrite(RedLED, 255);                  //Turn on red LED
-  delay(250);
+  delay(50);
   long redrc=RCtimeColour(PT);               //take rc time with red on
-  delay(250);
+  delay(50);
   analogWrite(RedLED, 0);
-  delay(250);
+  delay(50);
   
   return(redrc);
 }
@@ -195,11 +195,11 @@ long redRC()
 long blueRC()
 {
   analogWrite(BlueLED, 255);                //turn on blue LED
-  delay(250);
+  delay(50);
   long bluerc=RCtimeColour(PT);             //take rc time with blue on
-  delay(250);
+  delay(50);
   analogWrite(BlueLED, 0);
-  delay(250);
+  delay(50);
   
   return(bluerc);
 }
@@ -207,11 +207,11 @@ long blueRC()
 long greenRC()
 {
   analogWrite(GreenLED, 255);              //turn on green LED
-  delay(250);
+  delay(50);
   long greenrc=RCtimeColour(PT);           //take rc time with green on
-  delay(250);
+  delay(50);
   analogWrite(GreenLED, 0);
-  delay(250);
+  delay(50);
   
   return(greenrc);
 }
