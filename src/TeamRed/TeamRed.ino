@@ -26,14 +26,14 @@ Servo rightServo;
 boolean battery = true; 
 
  
-#define Rx 2 // DOUT to pin 11 
+#define Rx 11 // DOUT to pin 11
 #define Tx 3 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
 //COMMUNICATION
-boolean orderDeclared[] = {false, false, false};
-boolean orderMoving[] =  {false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false};
+boolean orderDeclared[] = {false, false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -43,7 +43,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 3;
+int numBots = 5;
 
 //CALIBRATION
 int calibDiff = 5;
@@ -163,10 +163,8 @@ void loop() {
      }
      
      displayVal();
-     sDelay(3100);
+     //sDelay(3100);
      val = doIGo();
-
-      
     
       
      //wait for change! change to false to go.
@@ -282,16 +280,16 @@ int sense() {
 void displayVal() {
   //while (true) { 
     for (int i = 0; i < val; i++) {
-           delay(500);
+           sDelay(500);
            digitalWrite(led, HIGH);
-           delay(200);
+           sDelay(200);
            digitalWrite(led, LOW);
-           delay(200);
+           sDelay(200);
       }
       
       Move(-1, -1);
       //mySerial.print(val); 
-      delay(200);
+      sDelay(200);
       Move(0,0);
       //mySerial.print(val); 
       //delay(800);

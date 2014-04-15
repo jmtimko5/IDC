@@ -10,7 +10,7 @@ From the POV of the Bot
 */
 
 #define din 3
-#define dout 2
+#define dout 11
 
 #define IRR 4
 #define IRRC 5
