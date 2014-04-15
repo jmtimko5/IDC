@@ -26,9 +26,9 @@ int calibDiff=50;
 int CODE=0;
 int hashCount=0;
 
-boolean orderDeclared[] = {false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false};
+boolean orderDeclared[] = {false, false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -38,7 +38,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 4;
+int numBots = 5;
 
 void setup() 
 {
@@ -66,33 +66,25 @@ void loop()
      sDelay(500);               
      if (hashCount<3)
      {                //if still in colour measuring part 
-     int dummy=getInteger();
-     for (int i=dummy; i>0; i--)
-       {
-         digitalWrite(10, HIGH);
-         sDelay(500);
-         digitalWrite(10, LOW);
-         sDelay(100);
-       }
+     int dummy=getInteger();     //get colour value and store temporarily
+     
+     flash(dummy);                //flash value
      CODE=CODE+dummy;         //add measured value to CODE
      Serial.println(String(CODE)+" "+String(dummy));
      hashCount++;                    //increase hashCount
      }
      else if(hashCount==3) {           //if at the long hash   
-       foundOrder(CODE);
+       foundOrder(CODE);              //communicate integer that has been found
        Serial.println(CODE);
-       hashCount++;                  //write integer value to LCD and increase hashCount
-       Move(-1,-1);
+       hashCount++;
+       
+       Move(-1,-1);                  //back up
        sDelay(200);
        Move(0,0);
-       for (int i=CODE; i>0; i--) {
-         digitalWrite(10, HIGH);
-         sDelay(500);
-         digitalWrite(10, LOW);
-         sDelay(100);
-       }
-       CODE=doIGo();
-     } else if (hashCount==4) {
+       
+       flash(CODE);                  //flash final code value
+       CODE=doIGo();                 //communicate with other robots to determine order
+     } else if (hashCount==4) {      //extra hash b/c it backs up a bit
        hashCount++;
      }
      else {
@@ -107,9 +99,7 @@ void loop()
          }
        } else {
          while(1) {                //when at correct place enter infinite loop
-           digitalWrite(9, HIGH);
-           sDelay(1000);
-           digitalWrite(9, LOW);
+         flash(1);
          }
        }
      }
@@ -132,7 +122,15 @@ void loop()
   // two left sides white
   Move(1,0);
   }
+}
 
+void flash(int count) {
+  for (int i=count; i>0; i--) {
+     digitalWrite(10, HIGH);
+     sDelay(500);
+     digitalWrite(10, LOW);
+     sDelay(100);
+  }
 }
 
 void Move(float left, float right) {
