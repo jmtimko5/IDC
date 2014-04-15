@@ -10,6 +10,8 @@ From the POV of the Bot
 #define IRLC 6
 #define IRL 7
 
+#define LED 3
+
 #include <Servo.h>
 #include <SoftwareSerial.h> 
 #define onesens 8
@@ -58,6 +60,7 @@ void setup()
   leftServo.attach(13); //attach servos
   rightServo.attach(12);
   Move(0,0);
+  pinMode(LED,OUTPUT);
   
    // XBee setup: 
  Xbee.begin(9600);
@@ -127,13 +130,18 @@ void onBlack(){
     tick++;
     if (tick ==1)  {
       Move(0,0);
-      for(int k =0;k<report;k++){
-        digitalWrite(3, HIGH);          // Pin 13 = 5 V, LED emits light
-        delay(500);                      // ..for 0.5 seconds
-        digitalWrite(3, LOW);           // Pin 13 = 0 V, LED no light
-        delay(500);  
+      leftServo.detach(); //attach servos
+      rightServo.detach();
+      for (int k =0;k<report;k++) {
+        digitalWrite(LED, HIGH);          // Pin 13 = 5 V, LED emits light
+        sDelay(300);                      // ..for 0.5 seconds
+        digitalWrite(LED, LOW);           // Pin 13 = 0 V, LED no light
+        sDelay(300);  
       }
       report = doIGo();
+      leftServo.attach(13); //attach servos
+      rightServo.attach(12);
+      sDelay(200);
     } else if (tick > 1) {
       sendMoving();
     }
@@ -143,6 +151,8 @@ void onBlack(){
     Move(1,1);
   } else if(tick == des){
   Move(0,0);
+  leftServo.detach(); //attach servos
+  rightServo.detach();
   while(1) {
     sDelay(1000);
   }
