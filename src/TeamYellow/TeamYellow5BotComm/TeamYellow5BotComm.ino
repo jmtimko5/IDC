@@ -19,7 +19,8 @@ boolean orderMoving[] =  {false, false, false, false, false};
 boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
-boolean debugging = true;
+boolean debugging = false;
+boolean communicating = true;
  
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
@@ -110,6 +111,8 @@ void loop()
    
   positionNum = doIGo();
   debug("DoIGo finished",-100);
+  sDelay(3200);
+  communicating = false;
    
   leftServo.attach(13);                                   //attach left servo
   rightServo.attach(12);                                  //attach right servo
@@ -124,7 +127,8 @@ void loop()
   Move(1,1);                                              //go straight
   sDelay(400);                                            //wait
 
-  debug("finished correction movement",-100); 
+  debug("finished correction movement",-100);
+  communicating = true; 
   sendMoving();                                           //tell next bot to go
   startTime = millis();                                   //start timer
   lineFollow(-1,-1,1200L);                                //blindly line follow for 1.2 seconds
@@ -311,14 +315,18 @@ void onBlack()
 // Delay function that allows for constant communication
 // Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
-  if (millis() - communicateTimer > 50L) {
-   communicate();
-   communicateTimer = 0L;
+  if (millis() - communicateTimer > 20L) {
+   if (communicating) {
+     communicate();
+   }
+     communicateTimer = 0L;
   } 
   for (int j=0;j < mills; j+=5) {
     delay(5);
-    if (millis() - communicateTimer > 50L) {
-      communicate();
+    if (millis() - communicateTimer > 20L) {
+     if (communicating) {
+       communicate();
+     }
       communicateTimer = 0L;
     }
   }
