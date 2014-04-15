@@ -16,7 +16,6 @@ boolean battery = false;
 #define Tx 8 // DIN to pin 8 moved from 10
 
 SoftwareSerial Xbee (Rx, Tx); 
-//SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
 boolean orderDeclared[] = {false, false, false, false, false};
 boolean orderMoving[] =  {false, false, false, false, false};
@@ -29,6 +28,7 @@ long statusTimer = 0;
 long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
+long startTime = 0;
 int myOrder = 0;
 int numBots = 5;
 
@@ -62,14 +62,8 @@ void setup()
 {
   Serial.begin(9600);
   Xbee.begin(9600);
- sDelay(3000);
+  sDelay(3000);
   Move(0,0);
- // mySerial.begin(9600);
-  
-  //delay(100);
-  //mySerial.write(12);                 // Clear
- // delay(5);
-  //mySerial.print("Yellow");           // First line
   sDelay(500);
   
   
@@ -77,8 +71,6 @@ void setup()
   rightServo.attach(12);
   Move(0,0);
   pinMode(7, INPUT);
-  //pinMode(LCD, OUTPUT);
- // digitalWrite(LCD, HIGH);
   pinMode(ledred, OUTPUT);
   pinMode(ledyellow, OUTPUT);
   pinMode(ledgreen, OUTPUT);
@@ -91,92 +83,84 @@ void setup()
 
 void loop() 
 {
-  int irl = RCtime(IRL) > calibDiff;
-  int irlc = RCtime(IRLC) > calibDiff;
-  int irrc = RCtime(IRRC) > calibDiff;
-  int irr = RCtime(IRR) > calibDiff;
-  
-  lineFollow(-1, 1);
+  lineFollow(-1, 1,-1L);
   positionNum = positionNum + (bulb)*(int) bulbOn();
   bulb = bulb*2;
-  lineFollow(-1, 1);
-  //take reading
+  lineFollow(-1, 1,-1L);
   positionNum = positionNum + (bulb)*(int) bulbOn();
   bulb = bulb*2;
-  lineFollow(-1, 1);
+  lineFollow(-1, 1,-1L);
   positionNum = positionNum + (bulb)*(int) bulbOn();
-  lineFollow(-1, 1);
+  lineFollow(-1, 1,-1L);
   Bled(positionNum);
   Move(0,0);
   sDelay(500);
-  foundOrder(positionNum);
-  //for(int i=0; i==positionNum; i++)
-    //{
-     // digitalWrite(led, HIGH);
-      //sDelay(1000);
-      //digitalWrite(led, LOW);
-      //sDelay(1000);
-   // }
+  foundOrder(positionNum);   
+   
    leftServo.detach();               //attach servos
    rightServo.detach();
-   int order = doIGo();
+   
+   positionNum = doIGo();
+   //sDelay(2000);
+   debug("DoIGo finished",-100);
+   
    leftServo.attach(13);               //attach servos
    rightServo.attach(12);
-    sDelay(1000);
-  lineFollow(4, -1);
-  for(int i=0; i<400;i++)
-  {   Move(.1,3);
-      delay(1); 
-  }
-   Move(0,0);
-   sDelay(50);
-   if (positionNum != 1){
-   lineFollow(-1,(6-positionNum));
-    sendMoving();
-     Move(0,0);
-    leftServo.detach();               //attach servos
-    rightServo.detach();
-  while(1) {
-//    debug("I'm now finishing with Order: ",order);
-  }
-
-    sDelay(10000000);}
-   if (positionNum == 1){
-   lineFollow(-1,1);
+   delay(200);  
+   debug("servos attached",-100);
+   
+//   lineFollow(1, -1, -1L);
+//   Move(3, .1);
+//   delay(200);
+//   lineFollow(3, -1, -1L);
+  
+  
+   lineFollow(4, -1, -1L);
+  // Move(0,0);
+  // sDelay(1000);
+   debug("finished white follow",-100);
+   
+   Move(.1, 3);
+   sDelay(600);
+   Move(1,1);
+   sDelay(400);
+   // Move(0,0);
+  // sDelay(1000); 
+  debug("finished correction movement",-100); 
+  startTime = millis();
+   lineFollow(-1,-1,1200L);
    sendMoving();
-   sDelay(500);
-   lineFollow(-1,1);
-   sDelay(500);
-   lineFollow(-1,1);
-   sDelay(500);
-   lineFollow(-1,1);
-   sDelay(500);
-   lineFollow(-1,1);
-   Move(0,0);
+   
+   debug("sending moving",-100);
+     //Move(0,0);
+   //sDelay(1000);
+   debug("beginning final",-100);
+   lineFollow(-1, 6-positionNum,-1L);
 
-  while(1) {
-//    debug("I'm now finishing with Order: ",order);
-  }
-
-    sDelay(10000000);}
-       leftServo.detach();               //attach servos
-   rightServo.detach();
-
+    Move(0,0);
+    leftServo.detach();               
+    rightServo.detach();
+    while(1)
+    {
+    sDelay(1000);
+    Move(0,0);
+    }
 }
 
 
+
 // Follow lines until we've reached the specified number of stops. -1 to ignore a kind of stop
-void lineFollow(int whiteStops, int blackStops) {
+void lineFollow(int whiteStops, int blackStops, long mill) {
   blackCount = 0;
   whiteCount = 0;
-  while (((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) {
+  
+ 
+  while ((((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) && ((mill < 0L) || (millis()-startTime<mill))) {
     int irl = RCtime(IRL) > calibDiff;
     int irlc = RCtime(IRLC) > calibDiff;
     int irrc = RCtime(IRRC) > calibDiff;
-    int irr = RCtime(IRR) > calibDiff;  
-    //Serial.println(String(whiteCount)+" "+String(blackCount));
-    //displayClear();
-    //displayLCD(String(whiteCount));
+    int irr = RCtime(IRR) > calibDiff;
+    
     if (irl && irlc && irrc && irr) {
       // All Black
       onBlack();
@@ -189,7 +173,7 @@ void lineFollow(int whiteStops, int blackStops) {
     }
       else if (!irl && irlc && irrc && !irr) {
       // Insides Black
-      //resetColorCount();
+      resetColorCount();
       Move(1,1);
     } 
       else if (!irrc && !irr) {
@@ -202,7 +186,7 @@ void lineFollow(int whiteStops, int blackStops) {
       Move(1,0);
       resetColorCount();
     }
-     
+    
   }
 }
 
@@ -232,7 +216,7 @@ void Bled(int positionNum) {
      digitalWrite(ledyellow, LOW);
      digitalWrite(ledgreen, HIGH);
   }
-  }
+}
   
   
   
@@ -255,7 +239,8 @@ long volts(int adPin)
 }
 
 
-long RCtime(int sensPin){
+long RCtime(int sensPin)
+{
    long result = 0;
    pinMode(sensPin, OUTPUT);       // make pin OUTPUT
    digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
@@ -270,17 +255,20 @@ long RCtime(int sensPin){
    return result;                   // report results   
 } 
 
-void resetColorCount() {
+void resetColorCount() 
+{
   allWhiteCount = 0;
   allBlackCount = 0;
 }
 
-void onWhite() {
+void onWhite() 
+{
   int i;
   allWhiteCount++;
-  if (allWhiteCount > 5) {
+  if (allWhiteCount > 8) {
     if ((millis() - whiteLastTime) > whiteOverrideTime) {
       whiteCount++;
+      debug("White added",-100);
       whiteLastTime = millis();
     }
   }
@@ -289,9 +277,10 @@ void onWhite() {
 void onBlack() {
   int i;
   allBlackCount++;
-  if (allBlackCount > 3) {
+  if (allBlackCount > 6) {
     if ((millis() - blackLastTime) > blackOverrideTime) {
       blackCount++;
+      debug("Black Added",-100);
       blackLastTime = millis();
     }
   }
@@ -301,13 +290,13 @@ void onBlack() {
 // Delay function that allows for constant communication
 // Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
-  if (millis() - communicateTimer > 10) {
+  if (millis() - communicateTimer > 50L) {
    communicate();
    communicateTimer = 0L;
   } 
   for (int j=0;j < mills; j+=5) {
     delay(5);
-    if (millis() - communicateTimer > 20L) {
+    if (millis() - communicateTimer > 50L) {
       communicate();
       communicateTimer = 0L;
     }
