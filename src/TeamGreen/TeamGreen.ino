@@ -69,7 +69,7 @@ void setup()
 
 
 void Move(int left, int right) {
-  sDelay(0);
+  delay(0);
  if (left == 1) {
  leftServo.writeMicroseconds(1600);
  } else if (left == 0) {
@@ -134,16 +134,18 @@ void onBlack(){
       rightServo.detach();
       for (int k =0;k<report;k++) {
         digitalWrite(LED, HIGH);          // Pin 13 = 5 V, LED emits light
-        sDelay(300);                      // ..for 0.5 seconds
+        delay(300);                      // ..for 0.5 seconds
         digitalWrite(LED, LOW);           // Pin 13 = 0 V, LED no light
-        sDelay(300);  
+        delay(300);  
       }
-      report = doIGo();
+      //report = doIGo();
+      waitForSignal(report);
       leftServo.attach(13); //attach servos
       rightServo.attach(12);
-      sDelay(200);
+      delay(200);
     } else if (tick > 1) {
-      sendMoving();
+      //sendMoving();
+      //imGoing(report);
     }
     black = 1; 
     
@@ -151,10 +153,11 @@ void onBlack(){
     Move(1,1);
   } else if(tick == des){
   Move(0,0);
+  imGoing(report);
   leftServo.detach(); //attach servos
   rightServo.detach();
   while(1) {
-    sDelay(1000);
+    delay(1000);
   }
   }
 }
@@ -206,7 +209,6 @@ void loop() {
     if (accu==0){
       contact--;
       report = PegValue(counter);
-      foundOrder(report); 
       //Serial.println(report);
       //Serial.println(counter);
       //mySerial.write(13);                 // Form feed
@@ -250,19 +252,19 @@ void loop() {
 
 // Delay function that allows for constant communication
 // Can also be used with mills = 0 for calling as often as you want
-void sDelay(int mills) { 
-  if (millis() - communicateTimer > 10) {
-   communicate();
-   communicateTimer = 0L;
-  } 
-  for (int j=0;j < mills; j+=5) {
-    delay(5);
-    if (millis() - communicateTimer > 20L) {
-      communicate();
-      communicateTimer = 0L;
-    }
-  }
-}
+//void sDelay(int mills) { 
+//  if (millis() - communicateTimer > 10) {
+//   communicate();
+//   communicateTimer = 0L;
+//  } 
+//  for (int j=0;j < mills; j+=5) {
+//    delay(5);
+//    if (millis() - communicateTimer > 20L) {
+//      communicate();
+//      communicateTimer = 0L;
+//    }
+//  }
+//}
 
 // Create a one character hexidecimal checksum (ascii a-f,0-9)
 String checksum(String data) {
@@ -370,7 +372,6 @@ void communicate() {
           newOrder += 1;
           if (numFalses == 1) {
             debug(">>New Order Deduced",-100);
-            foundOrder(newOrder);
           } 
         }
       }      
@@ -511,24 +512,24 @@ int doIGo() {
 }
 
 // Call this when you know your number, or with -1 if you don't
-void foundOrder(int orderNum) {
-  debug(">>Found Order, requesting number ",orderNum);
-  if ((orderNum <= 5) && (orderNum >= -1)) {
-    if ((orderDeclared[orderNum-1] == false) && (orderMoving[orderNum-1] == false) && (orderNum != -1)) {
-      myOrder = orderNum;
-      orderDeclared[myOrder-1] = true;
-    } else {
-      debug(">>Order Number Conflict or unsuccessful. Now -1",-100);
-      myOrder = -1;
-      someoneDoesntKnow = true;
-    }
-  } else {
-    myOrder = -1;
-    someoneDoesntKnow = true;
-  }
-  debug(">>Found Order finished, we are now number  ",myOrder);
-  sendStatus();
-}
+//void foundOrder(int orderNum) {
+//  debug(">>Found Order, requesting number ",orderNum);
+//  if ((orderNum <= 5) && (orderNum >= -1)) {
+//    if ((orderDeclared[orderNum-1] == false) && (orderMoving[orderNum-1] == false) && (orderNum != -1)) {
+//      myOrder = orderNum;
+//      orderDeclared[myOrder-1] = true;
+//    } else {
+//      debug(">>Order Number Conflict or unsuccessful. Now -1",-100);
+//      myOrder = -1;
+//      someoneDoesntKnow = true;
+//    }
+//  } else {
+//    myOrder = -1;
+//    someoneDoesntKnow = true;
+//  }
+//  debug(">>Found Order finished, we are now number  ",myOrder);
+//  sendStatus();
+//}
 
 // Yes, the length is hard coded. So don't use it in other code.
 boolean arrayEqual(boolean *a, boolean *b){
@@ -560,3 +561,63 @@ void debug(String text, int number) {
    Serial.println(message);
  }
 } 
+
+
+
+
+
+
+
+
+
+void imGoing(int pos) {
+   char keymap[] =  "yuiop";
+   for (int i = 0; i < 10; i++) {
+     Xbee.print(keymap[pos]);
+     delay(10);
+   }
+}
+ 
+//This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
+//send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
+//If you send -1, your bot will go at 45 seconds.
+void waitForSignal(int pos) {
+   int now = millis();
+   while(1) {
+     //if i'm bot 1, I go
+     if (pos == 1) {
+       //time to go!
+       return; 
+     }
+     
+     //the values
+     char keymap[] =  "yuiop";
+     char theirKey = keymap[pos-1];
+    
+     //read xbee until the person in front of you says going
+     while (Xbee.available()) {
+      //Read Character
+      char receiving = Xbee.read();
+      //if char is the id of the bot in front of me, I should go
+      if (receiving == theirKey) {
+       //my turn
+       return; 
+      }
+    }
+    
+    //unknown value? send -1 and wait for 45. TODO: deduce position
+    if (pos == -1) {
+       delay(45000); //30 seconds before going
+    }
+    
+    //time out
+    if (millis() > (15000 + pos*5000)) {
+        return;
+    }
+    
+    //grand timeout
+    if (millis() > 45000) {
+       return; 
+    }
+  }
+}
