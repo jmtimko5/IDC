@@ -181,6 +181,12 @@ void lineFollow(int whiteStops, int blackStops, long mill)
     onWhite();
     Move(1,1);
     }
+    else if(!irl && irlc && !irrc && !irr)
+    {
+    Move(1, .8);
+    delay(200);
+    Move(1,1);
+    }
     else if (!irl && irlc && irrc && !irr)                 //Insides Black
     {
     resetColorCount();
@@ -312,7 +318,10 @@ void onBlack()
 void imGoing(int pos) 
 {
    char keymap[] =  "yuiop";
-   Xbee.print(keymap[pos]);
+   for (int i = 0; i < 10; i++) {
+     Xbee.print(keymap[pos]);
+     delay(10);
+   }
 }
  
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
