@@ -119,18 +119,14 @@ void loop()
   rightServo.attach(12);                                  //attach right servo
   delay(200);                                            //wait and read xbee
   //debug("servos attached",-100);
-  
-  lineFollow(4, -1, -1L);                                 //line follow until sharp final turn
+  startTime = millis();
+  lineFollow(-1, -1, 5500);                                 //line follow until sharp final turn
   //debug("finished white follow",-100);
    
   Move(.1, 3);                                            //manually correct for hard final turn
   delay(500);                                            //wait half a second
   Move(1,1);                                              //go straight
   delay(400);                                            //wait
-
-  //debug("finished correction movement",-100);
-  //communicating = true; 
-  //sendMoving();                                         //tell next bot to go
   
   startTime = millis();                                   //start timer
   lineFollow(-1,-1,1200L);                                //blindly line follow for 1.2 seconds
@@ -138,7 +134,7 @@ void loop()
    
   //debug("sending moving",-100);
   //debug("beginning final",-100);
-  lineFollow(-1, ((6-positionNum)+3),-1L);                      //get to final hash
+  lineFollow(-1, (6-positionNum),-1L);                      //get to final hash
   imGoing(positionNum);
 
   Move(0,0);                                              //stop
@@ -183,9 +179,7 @@ void lineFollow(int whiteStops, int blackStops, long mill)
     }
     else if(!irl && irlc && !irrc && !irr)
     {
-    Move(1, .8);
-    delay(200);
-    Move(1,1);
+    Move(1, .6);
     }
     else if (!irl && irlc && irrc && !irr)                 //Insides Black
     {
@@ -358,7 +352,7 @@ void waitForSignal(int pos)
     }
     
     //time out
-    if (millis() > (15000 + pos*5000)) {
+    if (millis() > (15000 + pos*10000)) {
         return;
     }
     
