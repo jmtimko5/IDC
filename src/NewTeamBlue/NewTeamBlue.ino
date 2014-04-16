@@ -30,6 +30,7 @@ int whiteOverrideTime = 600;
 int blackOverrideTime = 350;
 int allWhiteCount = 0;
 int allBlackCount = 0;
+int howCountBlack = 6;
 long startTime = millis();
 
 int myNumber = 0;
@@ -174,7 +175,7 @@ void onWhite() {
 void onBlack() {
   int i;
   allBlackCount++;
-  if (allBlackCount > 6) {
+  if (allBlackCount > howCountBlack) {
     if ((millis() - blackLastTime) > blackOverrideTime) {
       blackCount++;
       debug("Black Plus One",-100);
@@ -268,7 +269,6 @@ void loop() {
   leftServo.detach(); //attach servos
   rightServo.detach();
   displayBinary(myNumber);
-  delay(5000);
   waitForSignal(myNumber);
   //delay(2000);
   displayBinary(myNumber);
@@ -279,22 +279,43 @@ void loop() {
   //Continue to White
   lineFollow(4,-1,-1);
   
+  //manuall turn
   Move(.1,3);
   delay(200);
   Move(1,1);
   delay(200);
   
+  //continue manually for time
   startTime = millis();
   lineFollow(-1,-1,2000L);
   Move(0,0);
-  delay(1000);
+  delay(300);
   
+  //go to first line
   lineFollow(-1,1,-1L);
+  Move(1,1);
+  delay(300);
+  Move(0,0);
+  delay(200);
+  
+  
+  leftServo.detach(); //attach servos
+  rightServo.detach();
   imGoing(myNumber); 
   displayBinary(7);
+  leftServo.attach(13); //attach servos
+  rightServo.attach(12);
+  delay(200);
+  howCountBlack = 7;
   
   //Finish the course
-  lineFollow(-1,5-myNumber,-1L);
+  for (int j=0;j<(5-myNumber);j++) {
+    lineFollow(-1,1,-1L);
+    Move(1,1);
+    delay(200);
+    Move(0,0);
+    delay(200);
+  }
   leftServo.detach(); //attach servos
   rightServo.detach();
   while(1) {
@@ -305,14 +326,18 @@ void loop() {
 
 void imGoing(int pos) {
    char keymap[] =  "yuiop";
-   Xbee.print(keymap[pos]);
+   
+   for(int i= 0; i < 10; i++) {
+     Xbee.print(keymap[pos]);
+     delay(10);
+   }
 }
  
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
 void waitForSignal(int pos) {
-   int now = millis();
+   long now = millis();
    while(1) {
      //if i'm bot 1, I go
      if (pos == 1) {
@@ -337,16 +362,16 @@ void waitForSignal(int pos) {
     
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-       delay(45000); //30 seconds before going
+       delay(45000L); //30 seconds before going
     }
     
     //time out
-    if (millis() > (15000 + pos*5000)) {
+    if (millis() > (15000L + ((long)pos)*5000L)) {
         return;
     }
     
     //grand timeout
-    if (millis() > 45000) {
+    if (millis() > 45000L) {
        return; 
     }
   }

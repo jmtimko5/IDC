@@ -7,20 +7,20 @@
 #define Tx 9 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-boolean orderDeclared[] = {false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false};
+boolean orderDeclared[] = {false, false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
-boolean outputBuffer = false;
+boolean outputBuffer = true;
  
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 4;
+int numBots = 5;
 
 void setup() {
   Serial.begin(9600);

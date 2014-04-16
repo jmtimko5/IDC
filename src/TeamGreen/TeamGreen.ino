@@ -563,26 +563,11 @@ void debug(String text, int number) {
 } 
 
 
-
-
-
-
-
-
-
-void imGoing(int pos) {
-   char keymap[] =  "yuiop";
-   for (int i = 0; i < 10; i++) {
-     Xbee.print(keymap[pos]);
-     delay(10);
-   }
-}
- 
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
 void waitForSignal(int pos) {
-   int now = millis();
+   long now = millis();
    while(1) {
      //if i'm bot 1, I go
      if (pos == 1) {
@@ -607,17 +592,31 @@ void waitForSignal(int pos) {
     
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-       delay(45000); //30 seconds before going
+       delay(45000L); //30 seconds before going
     }
     
     //time out
-    if (millis() > (15000 + pos*10000)) {
+    if (millis() > (15000L + ((long)pos)*5000L)) {
         return;
     }
     
     //grand timeout
-    if (millis() > 45000) {
+    if (millis() > 45000L) {
        return; 
     }
   }
 }
+
+
+
+
+
+
+void imGoing(int pos) {
+   char keymap[] =  "yuiop";
+   for (int i = 0; i < 10; i++) {
+     Xbee.print(keymap[pos]);
+     delay(10);
+   }
+}
+ 
