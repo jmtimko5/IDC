@@ -361,7 +361,7 @@ void waitForSignal(int pos) {
     }
     
     //time out
-    if (millis() > (15000L + ((long)pos)*5000L)) {
+    if (millis() > (15000L + ((long)pos)*10000L)) {
         return;
     }
     
