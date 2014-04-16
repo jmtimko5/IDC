@@ -203,9 +203,9 @@ void loop()
 
 void flash(int count) {
   for (int i=count; i>0; i--) {
-    digitalWrite(9, HIGH);
+    digitalWrite(8, HIGH);
     delay(150);
-    digitalWrite(9, LOW);
+    digitalWrite(8, LOW);
     delay(100);
   }
 }
@@ -650,12 +650,12 @@ void waitForSignal(int pos) {
     }
     
     //time out
-    if (millis() > (15000L + ((long)pos)*5000L)) {
+    if (millis() > (30000L + ((long)pos)*10000L)) {
         return;
     }
     
     //grand timeout
-    if (millis() > 45000L) {
+    if (millis() > 90000L) {
        return; 
     }
   }
