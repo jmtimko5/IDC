@@ -27,6 +27,18 @@ int CODE=0;
 int code2=0;
 int hashCount=0;
 
+
+int whiteCount = 0;
+int blackCount = 0;
+int whiteLastTime = 0;
+int blackLastTime = 0;
+int whiteOverrideTime = 600;
+int blackOverrideTime = 350;
+int allWhiteCount = 0;
+int allBlackCount = 0;
+
+long startTime = millis();
+
 boolean orderDeclared[] = {
   false, false, false, false, false};
 boolean orderMoving[] =  {
@@ -44,7 +56,6 @@ long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
 int numBots = 5;
-int whiteCount = 0;
 
 void setup() 
 {
@@ -96,10 +107,49 @@ void loop()
       flash(CODE);                  //flash final code value
       //   CODE=doIGo();                 //communicate with other robots to determine order
       waitForSignal(CODE);
+      //delay(2000);
       communicating=false;
 
       leftServo.attach(13); //attach servos
       rightServo.attach(12);
+      delay(200);
+      
+      lineFollow(4,-1,-1);
+      Move(0,1);
+      delay(300);
+      
+      //time go
+      lineFollow(-1,-1,2000L);
+      Move(0,0);
+      delay(1000);
+      
+      //get to first hash
+      lineFollow(-1,1,-1L);
+      Move(1,1);
+      delay(200);
+      Move(0,0);
+      leftServo.detach();
+      rightServo.detach();
+      imGoing(CODE);
+      leftServo.attach(13);
+      rightServo.attach(12);
+      delay(200);
+      
+      for (int j=0;j<(5-CODE);j++) {
+        lineFollow(-1,1,-1L);
+        Move(1,1);
+        delay(200);
+        Move(0,0);
+        delay(200);
+      }
+      Move(0,0);
+      leftServo.detach();
+      rightServo.detach();
+      while(1) {
+        Move(0,0);
+        delay(1000);
+      }
+      
 
     } 
     else if (hashCount==4) {      //extra hash b/c it backs up a bit
@@ -153,9 +203,9 @@ void loop()
 
 void flash(int count) {
   for (int i=count; i>0; i--) {
-    digitalWrite(8, HIGH);
+    digitalWrite(9, HIGH);
     delay(150);
-    digitalWrite(8, LOW);
+    digitalWrite(9, LOW);
     delay(100);
   }
 }
@@ -561,54 +611,128 @@ void debug(String text, int number) {
 
 void imGoing(int pos) {
   char keymap[] =  "yuiop";
-  leftServo.detach();
-  rightServo.detach();
-  for (int i=0; i < 1000; i++) {
+  for (int i=0; i < 20; i++) {
     Xbee.print(keymap[pos]);
-    delay(100);
+    delay(50);
   }
 
 }
-
+//This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
+//send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
+//If you send -1, your bot will go at 45 seconds.
 void waitForSignal(int pos) {
-  int now = millis();
-  while(1) {
-    //if i'm bot 1, I go
-    if (pos == 1) {
-      //time to go!
-      return; 
-    }
-
-    //the values
-    char keymap[] =  "yuiop";
-    char theirKey = keymap[pos-1];
-
-    //read xbee until the person in front of you says going
-    while (Xbee.available()) {
+   long now = millis();
+   while(1) {
+     //if i'm bot 1, I go
+     if (pos == 1) {
+       //time to go!
+       return; 
+     }
+     
+     //the values
+     char keymap[] =  "yuiop";
+     char theirKey = keymap[pos-1];
+    
+     //read xbee until the person in front of you says going
+     while (Xbee.available()) {
       //Read Character
       char receiving = Xbee.read();
       //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
-        //my turn
-        return; 
+       //my turn
+       return; 
       }
     }
-
+    
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-      delay(45000); //30 seconds before going
+       delay(45000L); //30 seconds before going
     }
-
+    
     //time out
-    if (millis() > (15000 + pos*10000)) {
-      return;
+    if (millis() > (15000L + ((long)pos)*5000L)) {
+        return;
     }
-
+    
     //grand timeout
-    if (millis() > 45000) {
-      return; 
+    if (millis() > 45000L) {
+       return; 
     }
   }
 }
+
+
+
+void onWhite() {
+  int i;
+  allWhiteCount++;
+  if (allWhiteCount > 5) {
+    if ((millis() - whiteLastTime) > whiteOverrideTime) {
+      whiteCount++;
+      debug("White Plus One",-100);
+      whiteLastTime = millis();
+    }
+  }
+}
+void onBlack() {
+  int i;
+  allBlackCount++;
+  if (allBlackCount > 6) {
+    if ((millis() - blackLastTime) > blackOverrideTime) {
+      blackCount++;
+      debug("Black Plus One",-100);
+      blackLastTime = millis();
+    }
+  }
+}
+void resetColorCount() {
+  allWhiteCount = 0;
+  allBlackCount = 0;
+}
+
+
+// Follow lines until we've reached the specified number of stops. -1 to ignore a kind of stop
+void lineFollow(int whiteStops, int blackStops, long mill) {
+  blackCount = 0;
+  whiteCount = 0;
+  startTime = millis();
+  
+
+  while ((((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) && ((mill < 0L) || (millis()-startTime<mill))) {
+    int irl = RCtime(IRL) > calibDiff;
+    int irlc = RCtime(IRLC) > calibDiff;
+    int irrc = RCtime(IRRC) > calibDiff;
+    int irr = RCtime(IRR) > calibDiff;
+ 
+    
+    if (irl && irlc && irrc && irr) {
+      // All Black
+      onBlack();
+      Move(1,1);
+    } 
+      else if (!irl && !irlc && !irrc && !irr) {
+      //All White
+      onWhite();
+      Move(1,1);
+    }
+      else if (!irl && irlc && irrc && !irr) {
+      // Insides Black
+      resetColorCount();
+      Move(1,1);
+    } 
+      else if (!irrc && !irr) {
+      // Two Right Sides white
+      Move(0,1);
+      resetColorCount();
+    } 
+     else if (!irl && !irlc) {
+      // Two Left Sides white
+      Move(1,0);
+      resetColorCount();
+    }
+    
+  }
+}
+
 
 
