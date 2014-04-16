@@ -14,24 +14,7 @@
 
 SoftwareSerial Xbee (Rx, Tx); 
 
-boolean orderDeclared[] = {
-  false, false, false, false, false};
-boolean orderMoving[] =  {
-  false, false, false, false, false};
-boolean orderMovingLastChecked[] = {
-  false, false, false, false, false};
-boolean imMoving = false;
-boolean someoneDoesntKnow = false;
-boolean debugging = false;
-boolean communicating = true;
-
-long statusTimer = 0;
-long timeSinceLastMoved = 0;
-long grandFallbackTimer = 0;
-long communicateTimer = 0;
 long startTime = 0;
-int myOrder = 0;
-int numBots = 5;
 
 Servo leftServo;
 Servo rightServo;
@@ -104,10 +87,10 @@ void loop()
   Bled(positionNum);                                      //displays positionNum
 
 
-    Move(0,0);                                              //stops moving
+    Move(0,0);                                             //stops moving
   leftServo.detach();                                     //detach left servo
   rightServo.detach();                                    //detach right servo
-  delay(500);                                            //wait while receiving xbee communication for half a second
+  delay(500);                                             //wait while receiving xbee communication for half a second
   //foundOrder(positionNum);   
 
 
@@ -139,12 +122,13 @@ void loop()
 
   //debug("sending moving",-100);
   //debug("beginning final",-100);
-  for(int i=0; i<positionNum; i++)
+  int stopHash = 6-positionNum;
+  for(int i=0; i<stopHash; i++)
   {
     lineFollow(-1, 1, -1L);
     delay(50);
   }
-  
+
   imGoing(positionNum);
 
   Move(0,0);                                              //stop
@@ -332,43 +316,44 @@ void imGoing(int pos)
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
 void waitForSignal(int pos) {
-   long now = millis();
-   while(1) {
-     //if i'm bot 1, I go
-     if (pos == 1) {
-       //time to go!
-       return; 
-     }
-     
-     //the values
-     char keymap[] =  "yuiop";
-     char theirKey = keymap[pos-1];
-    
-     //read xbee until the person in front of you says going
-     while (Xbee.available()) {
+  long now = millis();
+  while(1) {
+    //if i'm bot 1, I go
+    if (pos == 1) {
+      //time to go!
+      return; 
+    }
+
+    //the values
+    char keymap[] =  "yuiop";
+    char theirKey = keymap[pos-1];
+
+    //read xbee until the person in front of you says going
+    while (Xbee.available()) {
       //Read Character
       char receiving = Xbee.read();
       //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
-       //my turn
-       return; 
+        //my turn
+        return; 
       }
     }
-    
+
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-       delay(45000L); //30 seconds before going
+      delay(45000L); //30 seconds before going
     }
-    
+
     //time out
     if (millis() > (15000L + ((long)pos)*10000L)) {
-        return;
+      return;
     }
-    
+
     //grand timeout
     if (millis() > 45000L) {
-       return; 
+      return; 
     }
   }
 }
+
 
