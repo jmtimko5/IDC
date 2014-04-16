@@ -596,12 +596,12 @@ void waitForSignal(int pos) {
     }
     
     //time out
-    if (millis() > (15000L + ((long)pos)*5000L)) {
+    if (millis() > (30000L + ((long)pos)*10000L)) {
         return;
     }
     
     //grand timeout
-    if (millis() > 45000L) {
+    if (millis() > 90000L) {
        return; 
     }
   }
@@ -620,3 +620,4 @@ void imGoing(int pos) {
    }
 }
  
+
