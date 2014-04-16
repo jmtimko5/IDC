@@ -27,9 +27,10 @@ int blackCount = 0;
 int whiteLastTime = 0;
 int blackLastTime = 0;
 int whiteOverrideTime = 600;
-int blackOverrideTime = 250;
+int blackOverrideTime = 350;
 int allWhiteCount = 0;
 int allBlackCount = 0;
+long startTime = millis();
 
 int myNumber = 0;
 
@@ -44,9 +45,9 @@ boolean areWeSensing = true;
 #define Tx 10 // DIN to pin 10
 SoftwareSerial Xbee (Rx, Tx);
 
-boolean orderDeclared[] = {false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false};
+boolean orderDeclared[] = {false, false, false, false, false};
+boolean orderMoving[] =  {false, false, false, false, false};
+boolean orderMovingLastChecked[] = {false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = true;
@@ -56,7 +57,7 @@ long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
 long communicateTimer = 0;
 int myOrder = 0;
-int numBots = 4;
+int numBots = 5;
 
 //SoftwareSerial mySerial = SoftwareSerial(255, LCD);
 
@@ -155,7 +156,7 @@ void onWhite() {
 void onBlack() {
   int i;
   allBlackCount++;
-  if (allBlackCount > 3) {
+  if (allBlackCount > 6) {
     if ((millis() - blackLastTime) > blackOverrideTime) {
       blackCount++;
       debug("Black Plus One",-100);
@@ -169,15 +170,18 @@ void resetColorCount() {
 }
 
 // Follow lines until we've reached the specified number of stops. -1 to ignore a kind of stop
-void lineFollow(int whiteStops, int blackStops) {
+void lineFollow(int whiteStops, int blackStops, long mill) {
   blackCount = 0;
   whiteCount = 0;
-  while (((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) {
+  
+
+  while ((((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) && ((mill < 0L) || (millis()-startTime<mill))) {
+    Serial.println((mill > 0L) && (millis()-startTime<mill));
     int irl = RCtime(IRL) > calibDiff;
     int irlc = RCtime(IRLC) > calibDiff;
     int irrc = RCtime(IRRC) > calibDiff;
     int irr = RCtime(IRR) > calibDiff;
-    debug(String(irl)+String(irlc)+String(irrc)+String(irr),-100);  
+ 
     float velocity = (areWeSensing) ? .3 : 1;
     
     if (irl && irlc && irrc && irr) {
@@ -221,14 +225,13 @@ void lineFollow(int whiteStops, int blackStops) {
 
 void loop() {
   //Begin and sense
-  sDelay(3000);
-  lineFollow(-1,6);
+  lineFollow(-1,6,-1L);
   areWeSensing = false;
   
   //Stop at line
   Move(0,0);
-//  leftServo.detach(); //attach servos
-//  rightServo.detach();
+  leftServo.detach(); //attach servos
+  rightServo.detach();
   if (myNumber < 1) {
     myNumber = -1;
     foundOrder(-1);
@@ -237,24 +240,29 @@ void loop() {
   myNumber = doIGo();
   //sDelay(2000);
   displayBinary(myNumber);
-//  leftServo.attach(13); //attach servos
-//  rightServo.attach(12);
-//  sDelay(5000);
+  leftServo.attach(13); //attach servos
+  rightServo.attach(12);
+  sDelay(200);
   
   //Continue to White
-  lineFollow(4,-1);
+  lineFollow(4,-1,-1);
   
   Move(.1,3);
   sDelay(200);
   Move(1,1);
   sDelay(200);
   
-  lineFollow(-1,1);
+  startTime = millis();
+  lineFollow(-1,-1,2000L);
+  Move(0,0);
+  sDelay(1000);
+  
+  lineFollow(-1,1,-1L);
   sendMoving(); 
-  displayBinary(7);
+  //displayBinary(7);
   
   //Finish the course
-  lineFollow(-1,5-myNumber);
+  lineFollow(-1,5-myNumber,-1L);
   leftServo.detach(); //attach servos
   rightServo.detach();
   while(1) {
@@ -275,7 +283,7 @@ void loop() {
 // Delay function that allows for constant communication
 // Can also be used with mills = 0 for calling as often as you want
 void sDelay(int mills) { 
-  if (millis() - communicateTimer > 10) {
+  if (millis() - communicateTimer > 20L) {
    communicate();
    communicateTimer = 0L;
   } 
@@ -326,7 +334,7 @@ void communicate() {
     readChar++;
   }
   if (buffer != "") {
-    //debug("Buffer: "+buffer,-100);
+    debug("Buffer: "+buffer,-100);
     
     // Take away all non wanted characters. Keep a-k,G-K, 1-9, and '='
     for (i=0;i<buffer.length();i++) {
