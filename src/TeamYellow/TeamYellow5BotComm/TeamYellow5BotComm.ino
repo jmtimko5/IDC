@@ -1,7 +1,7 @@
 /*Four Sensors Digital Inputs should be 4-7, 
-Right to Left From the POV of the Bot 
-stop at positionNum + 3
-*/
+ Right to Left From the POV of the Bot 
+ stop at positionNum + 3
+ */
 #include <Servo.h>
 #include <SoftwareSerial.h> 
 
@@ -14,14 +14,17 @@ stop at positionNum + 3
 
 SoftwareSerial Xbee (Rx, Tx); 
 
-boolean orderDeclared[] = {false, false, false, false, false};
-boolean orderMoving[] =  {false, false, false, false, false};
-boolean orderMovingLastChecked[] = {false, false, false, false, false};
+boolean orderDeclared[] = {
+  false, false, false, false, false};
+boolean orderMoving[] =  {
+  false, false, false, false, false};
+boolean orderMovingLastChecked[] = {
+  false, false, false, false, false};
 boolean imMoving = false;
 boolean someoneDoesntKnow = false;
 boolean debugging = false;
 boolean communicating = true;
- 
+
 long statusTimer = 0;
 long timeSinceLastMoved = 0;
 long grandFallbackTimer = 0;
@@ -58,63 +61,63 @@ void setup()
   delay(500);                                            //wait half a second and run xbee
   Move(0,0);                                              //stop
   delay(500);                                            //wait half a second and run xbee
-  
-  
+
+
   leftServo.attach(13);                                   //attach left servo
   rightServo.attach(12);                                  //attach right servo
   Move(0,0);                                              //stop
-  
+
   pinMode(7, INPUT);                                      //define input pins
-  
+
   pinMode(ledred, OUTPUT);                                //define LED pins
   pinMode(ledyellow, OUTPUT);
   pinMode(ledgreen, OUTPUT);
-  
+
   digitalWrite(ledred, LOW);                              //write LED pins low
   digitalWrite(ledyellow, LOW);
   digitalWrite(ledgreen, LOW);
-  
+
   delay(100);                                            //wait 1/10 second and run xbee
 }
 
 void loop() 
 {
-  
+
   lineFollow(-1, 1,-1L);                                  //follows line to first bulb
   positionNum = positionNum + (bulb)*(int) bulbOn();      //measures bulb state increments positionNum accordingly
   bulb = bulb*2;                                          //increases bulb binary position
   Bled(positionNum);                                      //displays positionNum read so far
-  
-  
+
+
   lineFollow(-1, 1,-1L);                                  //follows line to second bulb
   positionNum = positionNum + (bulb)*(int) bulbOn();      //measures bulb state increments positionNum accordingly
   bulb = bulb*2;                                          //increases bulb binary position
   Bled(positionNum);                                      //displays positionNum read so far
-  
-  
+
+
   lineFollow(-1, 1,-1L);                                  //follows line to final bulb
   positionNum = positionNum + (bulb)*(int) bulbOn();      //measures bulb state increments positionNum accordingly
   Bled(positionNum);                                      //displays positionNum
-  
-  
-  lineFollow(-1, 1,-1L);                                  //follows line to main staging hash
+
+
+    lineFollow(-1, 1,-1L);                                  //follows line to main staging hash
   Bled(positionNum);                                      //displays positionNum
-  
-  
-  Move(0,0);                                              //stops moving
+
+
+    Move(0,0);                                              //stops moving
   leftServo.detach();                                     //detach left servo
   rightServo.detach();                                    //detach right servo
   delay(500);                                            //wait while receiving xbee communication for half a second
   //foundOrder(positionNum);   
-   
 
-   
+
+
   //positionNum = doIGo();
   //debug("DoIGo finished",-100);
   waitForSignal(positionNum);
   delay(3200);
   //communicating = false;
-   
+
   leftServo.attach(13);                                   //attach left servo
   rightServo.attach(12);                                  //attach right servo
   delay(200);                                            //wait and read xbee
@@ -122,19 +125,26 @@ void loop()
   startTime = millis();
   lineFollow(-1, -1, 5500);                                 //line follow until sharp final turn
   //debug("finished white follow",-100);
-   
+
   Move(.1, 3);                                            //manually correct for hard final turn
   delay(500);                                            //wait half a second
   Move(1,1);                                              //go straight
   delay(400);                                            //wait
-  
+
   startTime = millis();                                   //start timer
   lineFollow(-1,-1,1200L);                                //blindly line follow for 1.2 seconds
+  Move(0,0);
+  delay(500);
 
-   
+
   //debug("sending moving",-100);
   //debug("beginning final",-100);
-  lineFollow(-1, (6-positionNum),-1L);                      //get to final hash
+  for(int i=0; i<positionNum; i++)
+  {
+    lineFollow(-1, 1, -1L);
+    delay(50);
+  }
+  
   imGoing(positionNum);
 
   Move(0,0);                                              //stop
@@ -158,45 +168,45 @@ void lineFollow(int whiteStops, int blackStops, long mill)
 {
   blackCount = 0;
   whiteCount = 0;
-  
- 
+
+
   while ((((whiteCount < whiteStops) || (whiteStops == -1)) && ((blackCount < blackStops) || (blackStops == -1))) && ((mill < 0L) || (millis()-startTime<mill))) 
   {
     int irl = RCtime(IRL) > calibDiff;
     int irlc = RCtime(IRLC) > calibDiff;
     int irrc = RCtime(IRRC) > calibDiff;
     int irr = RCtime(IRR) > calibDiff;
-    
+
     if (irl && irlc && irrc && irr)                        // All Black
     {
-    onBlack();
-    Move(1,1);
+      onBlack();
+      Move(1,1);
     } 
     else if (!irl && !irlc && !irrc && !irr)               //All White
     {
-    onWhite();
-    Move(1,1);
+      onWhite();
+      Move(1,1);
     }
     else if(!irl && irlc && !irrc && !irr)
     {
-    Move(1, .6);
+      Move(1, .6);
     }
     else if (!irl && irlc && irrc && !irr)                 //Insides Black
     {
-    resetColorCount();
-    Move(1,1);
+      resetColorCount();
+      Move(1,1);
     } 
     else if (!irrc && !irr)                                //Two Right Sides white
     {
-    Move(0,1);
-    resetColorCount();
+      Move(0,1);
+      resetColorCount();
     } 
     else if (!irl && !irlc)                                //Two Left Sides white
     {
-    Move(1,0);
-    resetColorCount();
+      Move(1,0);
+      resetColorCount();
     }
-    
+
   }
 }
 
@@ -204,44 +214,44 @@ void lineFollow(int whiteStops, int blackStops, long mill)
 void Bled(int positionNum) {
   if(positionNum == 1)
   {
-     digitalWrite(ledred, HIGH);
-     digitalWrite(ledyellow, LOW);
-     digitalWrite(ledgreen, LOW);
+    digitalWrite(ledred, HIGH);
+    digitalWrite(ledyellow, LOW);
+    digitalWrite(ledgreen, LOW);
   }
   else if(positionNum == 2)
   {
-     digitalWrite(ledred, LOW);
-     digitalWrite(ledyellow, HIGH);
-     digitalWrite(ledgreen, LOW);
+    digitalWrite(ledred, LOW);
+    digitalWrite(ledyellow, HIGH);
+    digitalWrite(ledgreen, LOW);
   }
   else if(positionNum == 3)
   {
-     digitalWrite(ledred, HIGH);
-     digitalWrite(ledyellow, HIGH);
-     digitalWrite(ledgreen, LOW);
+    digitalWrite(ledred, HIGH);
+    digitalWrite(ledyellow, HIGH);
+    digitalWrite(ledgreen, LOW);
   }
   else if(positionNum == 4)
   {
-     digitalWrite(ledred, LOW);
-     digitalWrite(ledyellow, LOW);
-     digitalWrite(ledgreen, HIGH);
+    digitalWrite(ledred, LOW);
+    digitalWrite(ledyellow, LOW);
+    digitalWrite(ledgreen, HIGH);
   }
   else if(positionNum == 5)
   {
-     digitalWrite(ledred, HIGH);
-     digitalWrite(ledyellow, LOW);
-     digitalWrite(ledgreen, HIGH);
+    digitalWrite(ledred, HIGH);
+    digitalWrite(ledyellow, LOW);
+    digitalWrite(ledgreen, HIGH);
   }
 }
-  
-   
+
+
 void Move(float left, float right) 
 {
- float leftSpeed = mapfloat(left,0,1,1500,1700);
- float rightSpeed = mapfloat(right,0,1,1500,1350);
- 
- leftServo.writeMicroseconds((int) leftSpeed);
- rightServo.writeMicroseconds((int) rightSpeed);
+  float leftSpeed = mapfloat(left,0,1,1500,1700);
+  float rightSpeed = mapfloat(right,0,1,1500,1350);
+
+  leftServo.writeMicroseconds((int) leftSpeed);
+  rightServo.writeMicroseconds((int) rightSpeed);
 }
 
 
@@ -259,18 +269,18 @@ long volts(int adPin)
 
 long RCtime(int sensPin)
 {
-   long result = 0;
-   pinMode(sensPin, OUTPUT);       // make pin OUTPUT
-   digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
-   delay(1);                       // wait a  ms to make sure cap is discharged
+  long result = 0;
+  pinMode(sensPin, OUTPUT);       // make pin OUTPUT
+  digitalWrite(sensPin, HIGH);    // make pin HIGH to discharge capacitor - study the schematic
+  delay(1);                       // wait a  ms to make sure cap is discharged
 
-   pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
-   digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
-   while(digitalRead(sensPin)){    // wait for pin to go low
-      result++;
-   }
+  pinMode(sensPin, INPUT);        // turn pin into an input and time till pin goes low
+  digitalWrite(sensPin, LOW);     // turn pullups off - or it won't work
+  while(digitalRead(sensPin)){    // wait for pin to go low
+    result++;
+  }
 
-   return result;                   // report results   
+  return result;                   // report results   
 } 
 
 void resetColorCount() 
@@ -311,54 +321,55 @@ void onBlack()
 
 void imGoing(int pos) 
 {
-   char keymap[] =  "yuiop";
-   for (int i = 0; i < 10; i++) {
-     Xbee.print(keymap[pos]);
-     delay(10);
-   }
+  char keymap[] =  "yuiop";
+  for (int i = 0; i < 10; i++) {
+    Xbee.print(keymap[pos]);
+    delay(10);
+  }
 }
- 
+
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
 void waitForSignal(int pos) 
 {
-   int now = millis();
-   while(1) {
-     //if i'm bot 1, I go
-     if (pos == 1) {
-       //time to go!
-       return; 
-     }
-     
-     //the values
-     char keymap[] =  "yuiop";
-     char theirKey = keymap[pos-1];
-    
-     //read xbee until the person in front of you says going
-     while (Xbee.available()) {
+  int now = millis();
+  while(1) {
+    //if i'm bot 1, I go
+    if (pos == 1) {
+      //time to go!
+      return; 
+    }
+
+    //the values
+    char keymap[] =  "yuiop";
+    char theirKey = keymap[pos-1];
+
+    //read xbee until the person in front of you says going
+    while (Xbee.available()) {
       //Read Character
       char receiving = Xbee.read();
       //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
-       //my turn
-       return; 
+        //my turn
+        return; 
       }
     }
-    
+
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-       delay(45000); //30 seconds before going
+      delay(45000); //30 seconds before going
     }
-    
+
     //time out
     if (millis() > (15000 + pos*10000)) {
-        return;
+      return;
     }
-    
+
     //grand timeout
     if (millis() > 45000) {
-       return; 
+      return; 
     }
   }
 }
+
