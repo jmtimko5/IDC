@@ -331,44 +331,43 @@ void imGoing(int pos)
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
-void waitForSignal(int pos) 
-{
-  int now = millis();
-  while(1) {
-    //if i'm bot 1, I go
-    if (pos == 1) {
-      //time to go!
-      return; 
-    }
-
-    //the values
-    char keymap[] =  "yuiop";
-    char theirKey = keymap[pos-1];
-
-    //read xbee until the person in front of you says going
-    while (Xbee.available()) {
+void waitForSignal(int pos) {
+   long now = millis();
+   while(1) {
+     //if i'm bot 1, I go
+     if (pos == 1) {
+       //time to go!
+       return; 
+     }
+     
+     //the values
+     char keymap[] =  "yuiop";
+     char theirKey = keymap[pos-1];
+    
+     //read xbee until the person in front of you says going
+     while (Xbee.available()) {
       //Read Character
       char receiving = Xbee.read();
       //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
-        //my turn
-        return; 
+       //my turn
+       return; 
       }
     }
-
+    
     //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
-      delay(45000); //30 seconds before going
+       delay(45000L); //30 seconds before going
     }
-
+    
     //time out
-    if (millis() > (15000 + pos*10000)) {
-      return;
+    if (millis() > (15000L + ((long)pos)*5000L)) {
+        return;
     }
-
+    
     //grand timeout
-    if (millis() > 45000) {
-      return; 
+    if (millis() > 45000L) {
+       return; 
     }
   }
 }
