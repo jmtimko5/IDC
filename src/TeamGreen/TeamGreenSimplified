@@ -209,31 +209,31 @@ void waitForSignal(int pos) {           //input: the result of detection
      while (Xbee.available()) {
                                         //Read Character
       char receiving = Xbee.read();
-      //if char is the id of the bot in front of me, I should go
+                                        //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
-       //my turn
+                                        //my turn
        return; 
       }
     }
     
-    //unknown value? send -1 and wait for 45. TODO: deduce position
+                                       //unknown value? send -1 and wait for 45. TODO: deduce position
     if (pos == -1) {
        delay(45000L); //30 seconds before going
     }
     
-    //time out
+                                       //time out
     if (millis() > (30000L + ((long)pos)*10000L)) {
         return;
     }
     
-    //grand timeout
+                                      //grand timeout
     if (millis() > 90000L) {
        return; 
     }
   }
 }
 
-void imGoing(int pos) {
+void imGoing(int pos) {             // send the character to tell the next bot to move
    char keymap[] =  "yuiop";
    for (int i = 0; i < 10; i++) {
      Xbee.print(keymap[pos]);
