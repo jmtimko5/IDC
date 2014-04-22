@@ -22,27 +22,27 @@ SoftwareSerial Xbee (Rx, Tx);
 
 
 Servo leftServo;                //define servos 
-Servo rightServo;
-int calibDiff = 50;
-int calibsen = 400;
-int counter = 0;
-int contact = 2; 
-int accu = 15;
-int c0 = 0; 
-int c1 = 100; 
-int c2 = 200; 
-int c3 = 300; 
-int c4 = 430; 
-int c5 = 1000;
-int report = 0; 
-int black = 0;
-int tick = 0; 
-int des = 0; 
+Servo rightServo;               
+int calibDiff = 50;            // cutoff RC time value for detecting black line on the board
+int calibsen = 400;            // cutoff RC time value for detecting the peg on the side
+int counter = 0;               // stores the distance between the pegs
+int contact = 2;               // number of pegs needed to be detected
+int accu = 15;                 // RC time value needed to be greater than cutoff value 15 times consectively to ensure a peg is detected
+int c0 = 0;                    // base value distance
+int c1 = 100;                  // distance value ceiling for reporting a '1'
+int c2 = 200;                  // distance value ceiling for reporting a '2'
+int c3 = 300;                  // distance value ceiling for reporting a '3'
+int c4 = 430;                  // distance value ceiling for reporting a '4'
+int c5 = 1000;                 // distance value ceiling for reporting a '5' 
+int report = 0;                // the result 
+int black = 0;                 // used as a boolean, to indicator whether a black tick mark is reached or not
+int tick = 0;                  // number of tick mark passed
+int des = 0;                   // the parking tick mark 
 
 void setup() 
 {
   Serial.begin(9600);
-  leftServo.attach(13); //attach servos
+  leftServo.attach(13);        //attach servos
   rightServo.attach(12);
   Move(0,0);
   pinMode(LED,OUTPUT);
