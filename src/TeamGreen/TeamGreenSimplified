@@ -5,23 +5,23 @@ From the POV of the Bot
 */
 
 
-#define IRR 4
-#define IRRC 5
-#define IRLC 6
-#define IRL 7
+#define IRR 4               // pin for the right most QTI  (facing the front of the bot)        
+#define IRRC 5              // pin for the center right QTI   
+#define IRLC 6              // pin for the center left QTI
+#define IRL 7               // pin for the left most QTI 
 
-#define LED 3
+#define LED 3               // pin for the LED Indicator 
 
-#include <Servo.h>
+#include <Servo.h>           
 #include <SoftwareSerial.h> 
-#define onesens 8
+#define onesens 8           // pin for the sensing QTI on the side
  
-#define Rx 11 // DOUT to pin 11 
-#define Tx 10 // DIN to pin 10
+#define Rx 11 // DOUT to pin 11  // pin for Xbee output
+#define Tx 10 // DIN to pin 10   // pin for Xbee input
 SoftwareSerial Xbee (Rx, Tx);
 
 
-Servo leftServo; //define servos
+Servo leftServo;                //define servos 
 Servo rightServo;
 int calibDiff = 50;
 int calibsen = 400;
