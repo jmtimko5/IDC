@@ -44,25 +44,25 @@ void setup()
   Serial.begin(9600);
   leftServo.attach(13);        //attach servos
   rightServo.attach(12);
-  Move(0,0);
-  pinMode(LED,OUTPUT);
+  Move(0,0);                   //Not moving
+  pinMode(LED,OUTPUT);         //set the LED pin to output 
   
-   // XBee setup: 
+                               // XBee setup: 
  Xbee.begin(9600);
  delay(3000);
 }
 
 
-void Move(int left, int right) {
-  delay(0);
- if (left == 1) {
- leftServo.writeMicroseconds(1600);
+void Move(int left, int right) {              //function that controls the servos 
+  delay(0);                                   // input: '1' moves, '0' stops
+ if (left == 1) {        
+ leftServo.writeMicroseconds(1600);           // rotate the left servo ccw at half of its max speed
  } else if (left == 0) {
-   leftServo.writeMicroseconds(1500);
+   leftServo.writeMicroseconds(1500);         // stop moving 
  }
- if (right == 1) {
- rightServo.writeMicroseconds(1425);
- } else if (right == 0) {
+ if (right == 1) {                            // rotate the left servo cw at half of its max speed
+ rightServo.writeMicroseconds(1425); 
+ } else if (right == 0) {                     // stop moving
    rightServo.writeMicroseconds(1500);
 }
 }  
@@ -84,9 +84,9 @@ long RCtime(int sensPin){
 } 
 
 
-int PegValue(int counting){
-  int Peg = 0;
-  if (counting >=c0 && counting <=c1){
+int PegValue(int counting){                     //returns the number of empty spaces between the pegs
+  int Peg = 0;                                  // input: distance between the pegs
+  if (counting >=c0 && counting <=c1){          
   Peg = 1;
   }
   
@@ -108,86 +108,83 @@ int PegValue(int counting){
   
   return Peg;
 }
-void onBlack(){
-  des = 6-report; 
-  if(black==0 && tick!=des){
-    Move(0,0);
-    tick++;
-    if (tick ==1)  {
-      Move(0,0);
+void onBlack(){                            // if the bot hits a tick mark 
+  des = 6-report;                          // counting the location to park using the number from the task
+  if(black==0 && tick!=des){               // running into a tick mark
+    Move(0,0);                             // stops for a splint of a sec (kinda unnecessary, forgot to take it off)
+    tick++;                                // count the total number of tick mark passed
+    if (tick ==1)  {                       // if the first big black line is hit (first tick mark for the green team) 
+      Move(0,0);                           // stop moving and detach servos
       leftServo.detach(); //attach servos
       rightServo.detach();
-      for (int k =0;k<report;k++) {
-        digitalWrite(LED, HIGH);          // Pin 13 = 5 V, LED emits light
-        delay(300);                      // ..for 0.5 seconds
-        digitalWrite(LED, LOW);           // Pin 13 = 0 V, LED no light
+      for (int k =0;k<report;k++) {        // indicate the number sensed from the task by blinking LED
+        digitalWrite(LED, HIGH);           // Pin 13 = 5 V, LED emits light
+        delay(300);                        // ..for 0.5 seconds
+        digitalWrite(LED, LOW);            // Pin 13 = 0 V, LED no light
         delay(300);  
       }
       //report = doIGo();
-      waitForSignal(report);
-      leftServo.attach(13); //attach servos
+      waitForSignal(report);                // listen for the "move" signal from previous robot  
+      leftServo.attach(13);                 //attach servos
       rightServo.attach(12);
       delay(200);
     }
-    black = 1; 
+    black = 1;                             //change the boolean state  
     
-  } else if (black == 1){
+  } else if (black == 1){                  //allow the bot move pass the tick mark
     Move(1,1);
-  } else if(tick == des){
+  } else if(tick == des){                  //park if the parking tick mark is reached
   Move(0,0);
-  imGoing(report);
-  leftServo.detach(); //attach servos
+  imGoing(report);                         //tell the next robot to move
+  leftServo.detach();                      //detach servos 
   rightServo.detach();
-  while(1) {
+  while(1) {                               //infinit delay 
     delay(1000);
   }
   }
 }
-void loop() {
-  int irl = RCtime(IRL) > calibDiff;
+void loop() {                              //booleans for detections of the black line
+  int irl = RCtime(IRL) > calibDiff;       
   int irlc = RCtime(IRLC) > calibDiff;
   int irrc = RCtime(IRRC) > calibDiff;
   int irr = RCtime(IRR) > calibDiff;
-  int Answer;
   
-  if (irl && irlc && irrc && irr) {
-    // All Black
+  if (irl && irlc && irrc && irr) {        // All Black: call the function to see what to do
     onBlack();
-    //Serial.println(tick);
   } 
-  else if (irlc && irrc) {
-    // Insides Black
+  else if (irlc && irrc) {                
+                                           // Insides Black: keep moving straight
     Move(1,1);
   } else if (!irr && !irrc) {
-    // Two Right Sides white
+                                           // Two Right Sides white: turn left
     Move(0,1);
   } else if (!irl && !irlc) {
-    // Two Left Sides white
+                                           // Two Left Sides white: turn right
     Move(1,0);
   }
-  if (!irr && !irl){
-    black = 0; 
+  if (!irr && !irl){                       // outside white: change the state of the boolean that indicates
+    black = 0;                             // if the bot stops on the black tick
   }
   
   
-  int d1 = RCtime(onesens) > calibsen;
-  //int d2 = RCtime(twosens) > calibsen;
-  if (!d1 && contact==2){
-    accu--;
-    if (accu==0){
+  int d1 = RCtime(onesens) > calibsen;    // boolean for detections of empty space
+  
+  if (!d1 && contact==2){                // if a peg is there and there are two pegs neeed to be detected             
+    accu--;                              // making sure its a peg by repeating this process 15 times 
+    if (accu==0){                        // it's a peg, one peg left to go
       contact--;
-      accu=15; 
+      accu=15;                           // reset the accuracy value for next detection
     } 
   }
-  if (d1 && contact==1 && counter>=0){ 
+  if (d1 && contact==1 && counter>=0){  // count the number of times empty space is detected. store the value as the distance
     counter++; 
-    //Serial.println(counter); 
+
   }
-  if (!d1 && contact==1 && counter>15){ 
+  if (!d1 && contact==1 && counter>15){ // the last peg detected
     accu--;
     if (accu==0){
       contact--;
-      report = PegValue(counter);
+      report = PegValue(counter);      // the result of detection
     }      
   }
 }
@@ -196,22 +193,21 @@ void loop() {
 //This function will wait until your bot recieves a message to go. (The bot in front of you in line should 
 //send this mesage.) There is a timeout that corresponds to your bot number. There is a grand timeout of 45s.
 //If you send -1, your bot will go at 45 seconds.
-void waitForSignal(int pos) {
-   long now = millis();
+void waitForSignal(int pos) {           //input: the result of detection
+   long now = millis();                 // begining system time 
    while(1) {
-     //if i'm bot 1, I go
-     if (pos == 1) {
-       //time to go!
+                                        //if i'm bot 1, I go
+     if (pos == 1) {                    //time to go!
        return; 
      }
      
-     //the values
+                                        //the characters used to represent the order/result of detection
      char keymap[] =  "yuiop";
-     char theirKey = keymap[pos-1];
+     char theirKey = keymap[pos-1];     // since array starts at [0] and our number starts at [1]
     
-     //read xbee until the person in front of you says going
+                                        //read xbee until the person in front of you says going
      while (Xbee.available()) {
-      //Read Character
+                                        //Read Character
       char receiving = Xbee.read();
       //if char is the id of the bot in front of me, I should go
       if (receiving == theirKey) {
