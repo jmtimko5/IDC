@@ -43,7 +43,7 @@ byte CLK_pin = 24;
 byte EN_pin = 22;
 byte DIO_pin = 26;
 
-int X_Data = 0;
+int X_Data = 0;4
 int Y_Data = 0;
 int angle;
 int maxPlanetNumber = 0;
@@ -229,10 +229,10 @@ void lineFollow(int whiteStops, int blackStops, long mill) {
     }
     if (areWeSensing) {
       if (!(magnetState())) {
-        areWeSensing = false;
+        //areWeSensing = false;
          if ((blackCount > 0) && (blackCount < 6)) {
-           myNumber = blackCount;
-           displayBinary(myNumber);
+           //myNumber = blackCount;
+           //displayBinary(myNumber);
          }
        }
     }
@@ -241,9 +241,9 @@ void lineFollow(int whiteStops, int blackStops, long mill) {
 }
 
 void loop() {
-  currentPlanetReading = compassValue();
+  currentPlanetReading = 0;
   delay(40);
-  
+  areWeSensing = false;
   //Begin and sense
   for (int k=1;k<=5;k++) {
     lineFollow(-1,1,-1L);
@@ -261,7 +261,7 @@ void loop() {
   areWeSensing = false;
   if (myNumber < 1) {
     myNumber = maxPlanetNumber;
-  }
+  }w
   lineFollow(-1,1,-1L);
   
   //Stop at line
@@ -366,12 +366,12 @@ void waitForSignal(int pos) {
     }
     
     //time out
-    if (millis() > (15000L + ((long)pos)*5000L)) {
+    if (millis() > (30000L + ((long)pos)*10000L)) {
         return;
     }
     
     //grand timeout
-    if (millis() > 45000L) {
+    if (millis() > 90000L) {
        return; 
     }
   }
@@ -388,7 +388,7 @@ int compassValue() {
     //Serial.print(" ");  
     X_Data = ShiftIn(11); // Field strength in X
     Y_Data = ShiftIn(11); // and Y direction
-    sum += X_Data;
+    sum += abs(X_Data);
     //Serial.print(X_Data); // print X strength
     //Serial.print(" ");
     //Serial.print(Y_Data); // print Y strength
@@ -396,9 +396,8 @@ int compassValue() {
     digitalWrite(EN_pin, HIGH); // ok deselect chip
     //Serial.print(angle); // print angle
   }
-  sum = -sum;
   average = ((float)sum / (float)runTimes);
-  return ((int)average);
+  return abs(((int)average));
 }
 
 
